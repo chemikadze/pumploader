@@ -44,7 +44,6 @@ public class NewAccountActivity extends AccountAuthenticatorActivity {
                 try {
                     Uri parsed = Uri.parse(url);
                     String authcode = parsed.getQueryParameter("code");
-                    Toast.makeText(getApplicationContext(), authcode, Toast.LENGTH_LONG).show();
                     onCodeReceived(authcode);
                 } catch (Exception e) {
                     Log.e(tag, "Failed to parse URL", e);

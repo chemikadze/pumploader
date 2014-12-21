@@ -14,4 +14,10 @@
     <integer name="auth_client_id">3966</integer>
     <string name="auth_redirect_url">http://localhost/token_exchange.php</string>
     <string name="auth_client_secret">a530c014e7f44cb8feb8dfe7b51f1f4d177ed439</string>
+    <string name="tab_description">Description</string>
+    <string name="tab_exersises">Exercises</string>
+    <string name="add_exercise">Add exercise</string>
+    <string name="remove">Remove</string>
+    <string name="btn_add">Add</string>
+    <string name="btn_cancel">Cancel</string>
 </resources>

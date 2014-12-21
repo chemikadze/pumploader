@@ -21,18 +21,55 @@
               android:layout_height="wrap_content"
               android:text="@string/workoutdescription"/>
 
-    <EditText android:id="@+id/description_text"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:minLines="1"
-              android:maxLines="1000"
-              android:layout_weight="1"
-              android:gravity="top"/>
+    <TabHost
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:id="@+id/tab_host_input_type"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="1">
+        <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical">
+            <TabWidget
+                    android:id="@android:id/tabs"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content">
+            </TabWidget>
+            <FrameLayout
+                    android:id="@android:id/tabcontent"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
 
-    <LinearLayout android:layout_width="fill_parent"
-                  android:layout_height="wrap_content"
-                  android:layout_weight="0"/>
+                <LinearLayout
+                        android:id="@+id/tab_ex"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="vertical">
+                    <ListView
+                            android:id="@+id/exersizes"
+                            android:layout_width="fill_parent"
+                            android:layout_height="fill_parent">
 
+                    </ListView>
+                </LinearLayout>
+
+                <LinearLayout
+                        android:id="@+id/tab_descr"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:orientation="vertical">
+                    <EditText android:id="@+id/description_text"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:minLines="1"
+                        android:maxLines="1000"
+                        android:layout_weight="1"
+                        android:gravity="top"/>
+                </LinearLayout>
+            </FrameLayout>
+        </LinearLayout>
+    </TabHost>
     <Button android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/upload"

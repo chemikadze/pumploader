@@ -5,18 +5,19 @@ import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.Toast;
+import android.view.*;
+import android.widget.*;
 import org.jstrava.connector.JStrava;
 import org.jstrava.connector.JStravaV3;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.*;
@@ -25,22 +26,101 @@ public class NewWorkoutActivity extends Activity {
 
     private static final Integer ADD_ACCOUNT_REQUEST = 1;
 
-    private String tag = this.getClass().getSimpleName();
+    private static final String TAG_DESCRIPTION = "description";
+    private static final String TAG_EXERCISES = "exercises";
+
+    private final String tag = this.getClass().getSimpleName();
+
+    ArrayList<String> exercises;
+    ArrayAdapter<String> exerciseAdapter;
+    EditText descriptionWidget;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.new_workout_activity);
-        EditText titleWidget = (EditText)findViewById(R.id.title_text);
-        EditText descriptionWidget = (EditText)findViewById(R.id.description_text);
 
+        TabHost tabHost = (TabHost)findViewById(R.id.tab_host_input_type);
+        tabHost.setup();
+
+        TabHost.TabSpec spec;
+
+        spec = tabHost.newTabSpec(TAG_EXERCISES);
+        spec.setContent(R.id.tab_ex);
+        spec.setIndicator(getString(R.string.tab_exersises));
+        tabHost.addTab(spec);
+
+        spec = tabHost.newTabSpec(TAG_DESCRIPTION);
+        spec.setContent(R.id.tab_descr);
+        spec.setIndicator(getString(R.string.tab_description));
+        tabHost.addTab(spec);
+
+        ListView exerciseListView = (ListView)findViewById(R.id.exersizes);
+        LayoutInflater inflater = getLayoutInflater();
+        exerciseListView.addFooterView(inflater.inflate(R.layout.add_exercise, null));
+        exercises = new ArrayList<String>(0);
+        exerciseAdapter = new ArrayAdapter<String>(getApplicationContext(), R.layout.exercise_item, exercises);
+        exerciseListView.setAdapter(exerciseAdapter);
+        registerForContextMenu(exerciseListView);
+
+        EditText titleWidget = (EditText)findViewById(R.id.title_text);
         String prefix = getResources().getString(R.string.new_workout_prefix);
         String dateStr = DateFormat.getDateTimeInstance().format(new Date());
         String caption = prefix + " " + dateStr;
-        String description = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-
         titleWidget.setText(caption);
-        descriptionWidget.setText(description);
+
+        if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
+            descriptionWidget = (EditText)findViewById(R.id.description_text);
+            String description = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+            tabHost.setCurrentTabByTag(TAG_DESCRIPTION);
+            descriptionWidget.setText(description);
+        } else {
+            tabHost.setCurrentTabByTag(TAG_EXERCISES);
+        }
+
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.exercise_menu, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        switch (item.getItemId()) {
+            case R.id.remove_exercise:
+                String exercise = exerciseAdapter.getItem(info.position);
+                exerciseAdapter.remove(exercise);
+                return true;
+            default:
+                return super.onContextItemSelected(item);
+        }
+    }
+
+    public void onAddExercise(View view) {
+        final EditText txtUrl = new EditText(this);
+
+        new AlertDialog.Builder(this)
+            .setTitle(getString(R.string.add_exercise))
+            .setView(txtUrl)
+            .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    String exercise = txtUrl.getText().toString();
+                    doAddExercise(exercise);
+                }
+            })
+            .setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                }
+            })
+            .show();
+    }
+
+    private void doAddExercise(String description) {
+        exerciseAdapter.add(description);
     }
 
     public void onUploadClicked(View view) {
@@ -74,13 +154,31 @@ public class NewWorkoutActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    private String getDescriptionFromConstructor() {
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < exercises.size(); ++i) {
+            text.append(exercises.get(i));
+            text.append("\n");
+        }
+        return text.toString();
+    }
+
     private void startUpload() {
         EditText titleWidget = (EditText)findViewById(R.id.title_text);
-        EditText descriptionWidget = (EditText)findViewById(R.id.description_text);
+        descriptionWidget = (EditText)findViewById(R.id.description_text);
         CheckBox isPrivateWidget = (CheckBox)findViewById(R.id.is_private);
 
-        String title = titleWidget.getText().toString(), description = descriptionWidget.getText().toString();
-        uploadWorkout(title, description, isPrivateWidget.isChecked());
+        String title = titleWidget.getText().toString();
+        String descriptionText = descriptionWidget.getText().toString().trim();
+        String constructorText = getDescriptionFromConstructor().trim();
+        StringBuilder description = new StringBuilder();
+        description.append(descriptionText);
+        if (!descriptionText.isEmpty() && !constructorText.isEmpty()) {
+            description.append("\n\n");
+        }
+        description.append(constructorText);
+
+        uploadWorkout(title, description.toString(), isPrivateWidget.isChecked());
 
         setResult(RESULT_OK);
         finish();
@@ -105,12 +203,10 @@ public class NewWorkoutActivity extends Activity {
                 try {
                     token = future.getResult().getString(AccountManager.KEY_AUTHTOKEN);
                 } catch (Exception e) {
-                    String msg = "Failed to get token: " + e.getMessage();
+                    String msg = "Failed to get account token: " + e.getMessage();
                     Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                     return;
                 }
-                String msg = "Uploading workout with token " + token + ":\n\n" + title + "\n\n" + description;
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                 new UploadActivityTask().execute(token, title, description, isPrivate.toString());
             }
         }, null);
@@ -145,7 +241,7 @@ public class NewWorkoutActivity extends Activity {
             try {
                 Toast.makeText(getApplicationContext(), "Uploaded activity with id " + r.get(), Toast.LENGTH_LONG).show();
             } catch (Exception e) {
-                String msg = "Failed to upload workout: " + e.getMessage();
+                String msg = "Failed to upload activity: " + e.getMessage();
                 Log.i(tag, msg, e);
                 Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
             }
