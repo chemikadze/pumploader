@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="account_type">com.github.chemikadze.pumploader</string>
+    <string name="app_name">PumpLoader</string>
+    <string name="accountname">Login</string>
+    <string name="accountpassword">Password</string>
+    <string name="submit">Submit</string>
+    <string name="newworkout">New workout</string>
+    <string name="workoutname">Workout name</string>
+    <string name="is_private">Private</string>
+    <string name="workoutdescription">Description</string>
+    <string name="upload">Upload</string>
+    <string name="new_workout_prefix">Workout</string>
+    <integer name="auth_client_id">3966</integer>
+    <string name="auth_redirect_url">http://localhost/token_exchange.php</string>
+    <string name="auth_client_secret">a530c014e7f44cb8feb8dfe7b51f1f4d177ed439</string>
+</resources>
