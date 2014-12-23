@@ -1,12 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView
+<TableLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@android:id/text1"
-        android:layout_width="match_parent"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:gravity="center_vertical"
-        android:paddingLeft="12dip"
-        android:textColor="@android:color/primary_text_light"
-        android:minHeight="?android:attr/listPreferredItemHeight" android:singleLine="false">
-</TextView>
+        android:columnCount="2">
+
+
+        <TableRow>
+
+                <TextView
+                        android:id="@+id/exercise_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:text="example text"
+                        android:textColor="@android:color/primary_text_light"
+                        android:minHeight="?android:attr/listPreferredItemHeight"
+                        android:singleLine="false"
+                        android:layout_weight="1">
+                </TextView>
+
+                <Button
+                        android:id="@+id/add_set"
+                        android:layout_width="wrap_content"
+                        android:text="@string/btn_add_set"
+                        android:layout_weight="0"
+                        android:layout_marginRight="20dp"
+                        android:focusable="false"
+                        />
+
+
+        </TableRow>
+
+</TableLayout>
+

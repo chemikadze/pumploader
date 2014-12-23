@@ -12,11 +12,6 @@
               android:layout_width="fill_parent"
               android:layout_height="wrap_content"/>
 
-    <CheckBox android:id="@+id/is_private"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:text="@string/is_private"/>
-
     <TextView android:layout_width="fill_parent"
               android:layout_height="wrap_content"
               android:text="@string/workoutdescription"/>
@@ -46,12 +41,12 @@
                         android:layout_width="fill_parent"
                         android:layout_height="fill_parent"
                         android:orientation="vertical">
-                    <ListView
+                    <ExpandableListView
                             android:id="@+id/exersizes"
                             android:layout_width="fill_parent"
                             android:layout_height="fill_parent">
 
-                    </ListView>
+                    </ExpandableListView>
                 </LinearLayout>
 
                 <LinearLayout
@@ -70,6 +65,10 @@
             </FrameLayout>
         </LinearLayout>
     </TabHost>
+    <CheckBox android:id="@+id/is_private"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="@string/is_private" android:layout_gravity="right" android:layout_marginRight="12dp"/>
     <Button android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/upload"

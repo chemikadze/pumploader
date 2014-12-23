@@ -6,6 +6,7 @@ import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -17,9 +18,7 @@ import org.jstrava.connector.JStrava;
 import org.jstrava.connector.JStravaV3;
 
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class NewWorkoutActivity extends Activity {
@@ -31,9 +30,9 @@ public class NewWorkoutActivity extends Activity {
 
     private final String tag = this.getClass().getSimpleName();
 
-    ArrayList<String> exercises;
-    ArrayAdapter<String> exerciseAdapter;
-    EditText descriptionWidget;
+    private ExercisesAdapter exerciseAdapter;
+    private EditText descriptionWidget;
+    private ExpandableListView exerciseListView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -55,11 +54,29 @@ public class NewWorkoutActivity extends Activity {
         spec.setIndicator(getString(R.string.tab_description));
         tabHost.addTab(spec);
 
-        ListView exerciseListView = (ListView)findViewById(R.id.exersizes);
+        exerciseListView = (ExpandableListView)findViewById(R.id.exersizes);
         LayoutInflater inflater = getLayoutInflater();
-        exerciseListView.addFooterView(inflater.inflate(R.layout.add_exercise, null));
-        exercises = new ArrayList<String>(0);
-        exerciseAdapter = new ArrayAdapter<String>(getApplicationContext(), R.layout.exercise_item, exercises);
+        View footer = inflater.inflate(R.layout.add_exercise, null);
+        footer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onAddExercise(v);
+            }
+        });
+        exerciseListView.addFooterView(footer, null, false);
+
+        ArrayList<HashMap<String, Object>> exercises = new ArrayList<HashMap<String, Object>>();
+        String[] exerciseAttrKeys = new String[] {"name"};
+        int[] exerciseAttrVals = new int[] { R.id.exercise_name };
+
+        ArrayList<ArrayList<HashMap<String, Object>>> sets = new ArrayList<ArrayList<HashMap<String, Object>>>();
+        String[] setAttrKeys = new String[] {"name"};
+        int[] setAttrVals = new int[] { R.id.exercise_name };
+
+        exerciseAdapter = new ExercisesAdapter(
+                getApplicationContext(),
+                exercises, R.layout.exercise_item, exerciseAttrKeys, exerciseAttrVals,
+                sets, R.layout.set_item, setAttrKeys, setAttrVals);
         exerciseListView.setAdapter(exerciseAdapter);
         registerForContextMenu(exerciseListView);
 
@@ -80,6 +97,89 @@ public class NewWorkoutActivity extends Activity {
 
     }
 
+    class ExercisesAdapter extends SimpleExpandableListAdapter {
+
+        private ArrayList<HashMap<String, Object>> exercises;
+        private ArrayList<ArrayList<HashMap<String, Object>>> sets;
+
+        public ExercisesAdapter(Context context, ArrayList<HashMap<String, Object>> groupData, int groupLayout, String[] groupFrom, int[] groupTo, ArrayList<ArrayList<HashMap<String, Object>>> childData, int childLayout, String[] childFrom, int[] childTo) {
+            super(context, groupData, groupLayout, groupFrom, groupTo, childData, childLayout, childFrom, childTo);
+            exercises = groupData;
+            sets = childData;
+        }
+
+        public ArrayList<HashMap<String, Object>> getExercises() {
+            return exercises;
+        }
+
+        public ArrayList<ArrayList<HashMap<String, Object>>> getSets() {
+            return sets;
+        }
+
+        public void removeExercise(int id) {
+            exercises.remove(id);
+            sets.remove(id);
+            notifyDataSetChanged();
+        }
+
+        public void addExercise(String description) {
+            exercises.add(newExercise(description));
+            sets.add(new ArrayList<HashMap<String, Object>>());
+            notifyDataSetChanged();
+        }
+
+        public void removeSet(int exerciseId, int setId) {
+            sets.get(exerciseId).remove(setId);
+            notifyDataSetChanged();
+        }
+
+        public void addSet(int exerciseId, String description) {
+            sets.get(exerciseId).add(newSet(description));
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public View getGroupView(final int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+            View view = super.getGroupView(groupPosition, isExpanded, convertView, parent);
+            Button addButton = (Button)view.findViewById(R.id.add_set);
+            addButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final EditText txtUrl = new EditText(NewWorkoutActivity.this);
+
+                    new AlertDialog.Builder(NewWorkoutActivity.this)
+                            .setTitle(getString(R.string.add_set))
+                            .setView(txtUrl)
+                            .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    String set = txtUrl.getText().toString();
+                                    exerciseListView.expandGroup(groupPosition);
+                                    addSet(groupPosition, set);
+                                }
+                            })
+                            .setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                }
+                            })
+                            .show();
+                }
+            });
+            return view;
+        }
+
+        private HashMap<String, Object> newExercise(String name) {
+            HashMap<String, Object> map = new HashMap<String, Object>();
+            map.put("name", name);
+            return map;
+        }
+
+        private HashMap<String, Object> newSet(String name) {
+            HashMap<String, Object> map = new HashMap<String, Object>();
+            map.put("name", name);
+            return map;
+        }
+    }
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -89,11 +189,20 @@ public class NewWorkoutActivity extends Activity {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        ExpandableListView.ExpandableListContextMenuInfo info = (ExpandableListView.ExpandableListContextMenuInfo)item.getMenuInfo();
         switch (item.getItemId()) {
             case R.id.remove_exercise:
-                String exercise = exerciseAdapter.getItem(info.position);
-                exerciseAdapter.remove(exercise);
+                int group = ExpandableListView.getPackedPositionGroup(info.packedPosition);
+                int set = ExpandableListView.getPackedPositionChild(info.packedPosition);
+                switch (ExpandableListView.getPackedPositionType(info.packedPosition)) {
+                    case ExpandableListView.PACKED_POSITION_TYPE_GROUP:
+                        exerciseAdapter.removeExercise(group);
+                        break;
+                    case ExpandableListView.PACKED_POSITION_TYPE_CHILD:
+                        exerciseAdapter.removeSet(group, set);
+                        break;
+                    default:
+                }
                 return true;
             default:
                 return super.onContextItemSelected(item);
@@ -109,7 +218,7 @@ public class NewWorkoutActivity extends Activity {
             .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     String exercise = txtUrl.getText().toString();
-                    doAddExercise(exercise);
+                    exerciseAdapter.addExercise(exercise);
                 }
             })
             .setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
@@ -117,10 +226,6 @@ public class NewWorkoutActivity extends Activity {
                 }
             })
             .show();
-    }
-
-    private void doAddExercise(String description) {
-        exerciseAdapter.add(description);
     }
 
     public void onUploadClicked(View view) {
@@ -156,8 +261,20 @@ public class NewWorkoutActivity extends Activity {
 
     private String getDescriptionFromConstructor() {
         StringBuilder text = new StringBuilder();
-        for (int i = 0; i < exercises.size(); ++i) {
-            text.append(exercises.get(i));
+        for (int i = 0; i < exerciseAdapter.getExercises().size(); ++i) {
+            text.append(i + 1);
+            text.append(". ");
+            text.append(exerciseAdapter.getExercises().get(i).get("name"));
+            text.append("\n");
+
+            ArrayList<HashMap<String, Object>> currentSets = exerciseAdapter.getSets().get(i);
+
+            for (int j = 0; j < currentSets.size(); ++j) {
+                text.append(j + 1);
+                text.append(") ");
+                text.append(currentSets.get(j).get("name"));
+                text.append("\n");
+            }
             text.append("\n");
         }
         return text.toString();
@@ -171,6 +288,7 @@ public class NewWorkoutActivity extends Activity {
         String title = titleWidget.getText().toString();
         String descriptionText = descriptionWidget.getText().toString().trim();
         String constructorText = getDescriptionFromConstructor().trim();
+        Toast.makeText(getApplicationContext(), constructorText, Toast.LENGTH_LONG).show();
         StringBuilder description = new StringBuilder();
         description.append(descriptionText);
         if (!descriptionText.isEmpty() && !constructorText.isEmpty()) {
