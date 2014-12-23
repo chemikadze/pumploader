@@ -22,4 +22,9 @@
     <string name="btn_add">Add</string>
     <string name="btn_add_set">Add set</string>
     <string name="btn_cancel">Cancel</string>
+    <string-array name="default_workout_types">
+        <item>Squat Jumps</item>
+        <item>Push Ups</item>
+        <item>Pull Ups</item>
+    </string-array>
 </resources>

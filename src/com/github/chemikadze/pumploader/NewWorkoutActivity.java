@@ -133,8 +133,8 @@ public class NewWorkoutActivity extends Activity {
             notifyDataSetChanged();
         }
 
-        public void addSet(int exerciseId, String description) {
-            sets.get(exerciseId).add(newSet(description));
+        public void addSet(int exerciseId, int count) {
+            sets.get(exerciseId).add(newSet(String.valueOf(count), count));
             notifyDataSetChanged();
         }
 
@@ -145,16 +145,26 @@ public class NewWorkoutActivity extends Activity {
             addButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    final EditText txtUrl = new EditText(NewWorkoutActivity.this);
+                    View view = NewWorkoutActivity.this.getLayoutInflater().inflate(R.layout.add_set_dialog, null);
+                    final NumberPicker picker = (NumberPicker)view.findViewById(R.id.set_count_picker);
+                    picker.setMinValue(0);
+                    picker.setMaxValue(Integer.MAX_VALUE);
+                    picker.setWrapSelectorWheel(false);
+
+                    ArrayList<HashMap<String, Object>> currentSets = sets.get(groupPosition);
+                    if (!currentSets.isEmpty()) {
+                        int lastSetCount = (Integer)currentSets.get(currentSets.size() - 1).get("count");
+                        picker.setValue(lastSetCount);
+                    }
 
                     new AlertDialog.Builder(NewWorkoutActivity.this)
                             .setTitle(getString(R.string.add_set))
-                            .setView(txtUrl)
+                            .setView(view)
                             .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
-                                    String set = txtUrl.getText().toString();
+                                    Integer count = picker.getValue();
                                     exerciseListView.expandGroup(groupPosition);
-                                    addSet(groupPosition, set);
+                                    addSet(groupPosition, count);
                                 }
                             })
                             .setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
@@ -173,9 +183,10 @@ public class NewWorkoutActivity extends Activity {
             return map;
         }
 
-        private HashMap<String, Object> newSet(String name) {
+        private HashMap<String, Object> newSet(String name, Integer count) {
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put("name", name);
+            map.put("count", count);
             return map;
         }
     }
@@ -209,15 +220,20 @@ public class NewWorkoutActivity extends Activity {
         }
     }
 
-    public void onAddExercise(View view) {
-        final EditText txtUrl = new EditText(this);
+    public void onAddExercise(View v) {
+        final ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        spinnerAdapter.addAll(getExerciseTypes());
+
+        final View view = this.getLayoutInflater().inflate(R.layout.add_exercise_dialog, null);
+        final Spinner spinner = (Spinner)view.findViewById(R.id.exercise_type_spinner);
+        spinner.setAdapter(spinnerAdapter);
 
         new AlertDialog.Builder(this)
             .setTitle(getString(R.string.add_exercise))
-            .setView(txtUrl)
+            .setView(view)
             .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
-                    String exercise = txtUrl.getText().toString();
+                    String exercise = spinnerAdapter.getItem(spinner.getSelectedItemPosition());
                     exerciseAdapter.addExercise(exercise);
                 }
             })
@@ -245,6 +261,10 @@ public class NewWorkoutActivity extends Activity {
         } else {
             startUpload();
         }
+    }
+
+    protected String[] getExerciseTypes() {
+        return getResources().getStringArray(R.array.default_workout_types);
     }
 
     @Override
