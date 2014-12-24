@@ -11,15 +11,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.*;
 import android.widget.*;
 import org.jstrava.connector.JStrava;
 import org.jstrava.connector.JStravaV3;
 
+import java.lang.ref.Reference;
 import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class NewWorkoutActivity extends Activity {
 
@@ -133,8 +138,8 @@ public class NewWorkoutActivity extends Activity {
             notifyDataSetChanged();
         }
 
-        public void addSet(int exerciseId, int count) {
-            sets.get(exerciseId).add(newSet(String.valueOf(count), count));
+        public void addSet(int exerciseId, int count, long elapsed) {
+            sets.get(exerciseId).add(newSet(String.valueOf(count), count, elapsed));
             notifyDataSetChanged();
         }
 
@@ -146,15 +151,104 @@ public class NewWorkoutActivity extends Activity {
                 @Override
                 public void onClick(View v) {
                     View view = NewWorkoutActivity.this.getLayoutInflater().inflate(R.layout.add_set_dialog, null);
-                    final NumberPicker picker = (NumberPicker)view.findViewById(R.id.set_count_picker);
-                    picker.setMinValue(0);
-                    picker.setMaxValue(Integer.MAX_VALUE);
-                    picker.setWrapSelectorWheel(false);
+                    final NumberPicker numberPicker = (NumberPicker)view.findViewById(R.id.set_count_picker);
+                    numberPicker.setMinValue(0);
+                    numberPicker.setMaxValue(Integer.MAX_VALUE);
+                    numberPicker.setWrapSelectorWheel(false);
+
+                    final Chronometer chrono = (Chronometer)view.findViewById(R.id.set_chrono);
+                    final AtomicLong elapsed = new AtomicLong(0);
+                    final AtomicBoolean running = new AtomicBoolean(false);
+                    final AtomicBoolean stopped = new AtomicBoolean(false);
+
+                    final ImageButton startButton = (ImageButton)view.findViewById(R.id.set_chrono_start);
+                    startButton.setOnClickListener(new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View v) {
+                            if (!running.get() && !stopped.get()) {
+                                chrono.setBase(SystemClock.elapsedRealtime());
+                                chrono.start();
+                                running.set(true);
+                                startButton.setImageResource(android.R.drawable.ic_media_pause);
+                            } else if (running.get() && !stopped.get()) {
+                                chrono.stop();
+                                elapsed.set((SystemClock.elapsedRealtime() - chrono.getBase()) / 1000);
+                                running.set(false);
+                                stopped.set(true);
+                                startButton.setImageResource(android.R.drawable.ic_media_rew);
+                            } else {
+                                elapsed.set(0);
+                                chrono.setBase(SystemClock.elapsedRealtime());
+                                stopped.set(false);
+                                startButton.setImageResource(android.R.drawable.ic_media_play);
+                            }
+                        }
+                    });
+
+                    final ImageButton setChronoButton = (ImageButton)view.findViewById(R.id.set_chrono_value);
+                    setChronoButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+
+                            // why standard is not visible by compiler?
+                            final NumberPicker.Formatter twoDigitFormatter = new NumberPicker.Formatter() {
+                                final StringBuilder mBuilder = new StringBuilder();
+                                final java.util.Formatter mFmt = new java.util.Formatter(mBuilder, java.util.Locale.US);
+                                final Object[] mArgs = new Object[1];
+                                public String format(int value) {
+                                    mArgs[0] = value;
+                                    mBuilder.delete(0, mBuilder.length());
+                                    mFmt.format("%02d", mArgs);
+                                    return mFmt.toString();
+                                }
+                            };
+
+                            View picker = NewWorkoutActivity.this.getLayoutInflater().inflate(R.layout.duration_picker, null);
+                            final NumberPicker hrsPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_hr);
+                            hrsPicker.setMinValue(0);
+                            hrsPicker.setMaxValue(100);
+                            hrsPicker.setWrapSelectorWheel(false);
+                            hrsPicker.setValue((int)elapsed.get() / 60 / 60);
+                            final NumberPicker minPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_min);
+                            minPicker.setMinValue(0);
+                            minPicker.setMaxValue(60);
+                            minPicker.setValue((int)elapsed.get() / 60 % 60);
+                            minPicker.setWrapSelectorWheel(true);
+                            minPicker.setFormatter(twoDigitFormatter);
+                            final NumberPicker secPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_sec);
+                            secPicker.setMinValue(0);
+                            secPicker.setMaxValue(60);
+                            secPicker.setValue((int)elapsed.get() % 60);
+                            secPicker.setWrapSelectorWheel(true);
+                            secPicker.setFormatter(twoDigitFormatter);
+
+                            new AlertDialog.Builder(NewWorkoutActivity.this)
+                                    .setTitle(getString(R.string.enter_duration))
+                                    .setView(picker)
+                                    .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int whichButton) {
+                                            exerciseListView.expandGroup(groupPosition);
+                                            elapsed.set(((hrsPicker.getValue() * 60) + minPicker.getValue()) * 60 + secPicker.getValue());
+                                            running.set(false);
+                                            stopped.set(true);
+                                            startButton.setImageResource(android.R.drawable.ic_media_rew);
+                                            chrono.stop();
+                                            chrono.setBase(SystemClock.elapsedRealtime() - elapsed.get() * 1000);
+                                        }
+                                    })
+                                    .setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int whichButton) {
+                                        }
+                                    })
+                                    .show();
+                        }
+                    });
 
                     ArrayList<HashMap<String, Object>> currentSets = sets.get(groupPosition);
                     if (!currentSets.isEmpty()) {
                         int lastSetCount = (Integer)currentSets.get(currentSets.size() - 1).get("count");
-                        picker.setValue(lastSetCount);
+                        numberPicker.setValue(lastSetCount);
                     }
 
                     new AlertDialog.Builder(NewWorkoutActivity.this)
@@ -162,9 +256,9 @@ public class NewWorkoutActivity extends Activity {
                             .setView(view)
                             .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
-                                    Integer count = picker.getValue();
+                                    Integer count = numberPicker.getValue();
                                     exerciseListView.expandGroup(groupPosition);
-                                    addSet(groupPosition, count);
+                                    addSet(groupPosition, count, elapsed.get());
                                 }
                             })
                             .setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
@@ -183,10 +277,15 @@ public class NewWorkoutActivity extends Activity {
             return map;
         }
 
-        private HashMap<String, Object> newSet(String name, Integer count) {
+        private HashMap<String, Object> newSet(String name, Integer count, Long elapsed) {
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put("name", name);
             map.put("count", count);
+            if (elapsed > 0) {
+                map.put("elapsed", elapsed);
+            } else {
+                map.put("elapsed", "");
+            }
             return map;
         }
     }
@@ -221,7 +320,7 @@ public class NewWorkoutActivity extends Activity {
     }
 
     public void onAddExercise(View v) {
-        final ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        final ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, R.layout.spinner_item);
         spinnerAdapter.addAll(getExerciseTypes());
 
         final View view = this.getLayoutInflater().inflate(R.layout.add_exercise_dialog, null);

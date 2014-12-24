@@ -1,6 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<NumberPicker xmlns:android="http://schemas.android.com/apk/res/android"
-              android:id="@+id/set_count_picker"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
-</NumberPicker>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:padding="5dp">
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_dialog_count"
+            android:layout_marginLeft="15dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"/>
+
+    <NumberPicker
+            android:id="@+id/set_count_picker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+    </NumberPicker>
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_dialog_duration"
+            android:layout_marginLeft="15dp"
+            android:layout_marginTop="10dp"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            >
+
+        <Chronometer
+                android:id="@+id/set_chrono"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:layout_weight="1"/>
+
+        <ImageButton
+                android:id="@+id/set_chrono_start"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@android:drawable/ic_media_play"
+                android:layout_weight="0"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="5dp"/>
+
+        <ImageButton
+                android:id="@+id/set_chrono_value"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/ic_stopwatch"
+                android:layout_weight="0"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="5dp"/>
+
+    </LinearLayout>
+</LinearLayout>

@@ -27,4 +27,7 @@
         <item>Push Ups</item>
         <item>Pull Ups</item>
     </string-array>
+    <string name="add_dialog_duration">Duration</string>
+    <string name="add_dialog_count">Count</string>
+    <string name="enter_duration">Enter duration</string>
 </resources>
