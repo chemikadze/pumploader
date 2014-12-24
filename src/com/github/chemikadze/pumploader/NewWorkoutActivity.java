@@ -214,7 +214,7 @@ public class NewWorkoutActivity extends Activity {
                             new AlertDialog.Builder(NewWorkoutActivity.this)
                                     .setTitle(getString(R.string.enter_duration))
                                     .setView(picker)
-                                    .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
+                                    .setPositiveButton(getString(R.string.btn_set), new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int whichButton) {
                                             exerciseListView.expandGroup(groupPosition);
                                             elapsed.set(((hrsPicker.getValue() * 60) + minPicker.getValue()) * 60 + secPicker.getValue());
@@ -389,8 +389,13 @@ public class NewWorkoutActivity extends Activity {
                 text.append(j + 1);
                 text.append(") ");
                 text.append(currentSets.get(j).get(SET_COUNT));
-                text.append(" ");
-                text.append(currentSets.get(j).get(SET_DURATION));
+                text.append(" times");
+                String elapsed = currentSets.get(j).get(SET_DURATION).toString();
+                if (!elapsed.isEmpty()) {
+                    text.append(", ");
+                    text.append(currentSets.get(j).get(SET_DURATION));
+                    text.append(" elapsed");
+                }
                 text.append("\n");
             }
             text.append("\n");
