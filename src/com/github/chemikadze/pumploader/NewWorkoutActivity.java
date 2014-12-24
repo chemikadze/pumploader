@@ -18,12 +18,10 @@ import android.widget.*;
 import org.jstrava.connector.JStrava;
 import org.jstrava.connector.JStravaV3;
 
-import java.lang.ref.Reference;
 import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class NewWorkoutActivity extends Activity {
@@ -32,6 +30,9 @@ public class NewWorkoutActivity extends Activity {
 
     private static final String TAG_DESCRIPTION = "description";
     private static final String TAG_EXERCISES = "exercises";
+    public static final String SET_DURATION = "duration";
+    public static final String SET_COUNT = "count";
+    public static final String EXERCISE_NAME = "name";
 
     private final String tag = this.getClass().getSimpleName();
 
@@ -71,12 +72,12 @@ public class NewWorkoutActivity extends Activity {
         exerciseListView.addFooterView(footer, null, false);
 
         ArrayList<HashMap<String, Object>> exercises = new ArrayList<HashMap<String, Object>>();
-        String[] exerciseAttrKeys = new String[] {"name"};
+        String[] exerciseAttrKeys = new String[] { EXERCISE_NAME };
         int[] exerciseAttrVals = new int[] { R.id.exercise_name };
 
         ArrayList<ArrayList<HashMap<String, Object>>> sets = new ArrayList<ArrayList<HashMap<String, Object>>>();
-        String[] setAttrKeys = new String[] {"name"};
-        int[] setAttrVals = new int[] { R.id.exercise_name };
+        String[] setAttrKeys = new String[] { SET_COUNT, SET_DURATION };
+        int[] setAttrVals = new int[] { R.id.exercise_name, R.id.exercise_duration };
 
         exerciseAdapter = new ExercisesAdapter(
                 getApplicationContext(),
@@ -138,8 +139,8 @@ public class NewWorkoutActivity extends Activity {
             notifyDataSetChanged();
         }
 
-        public void addSet(int exerciseId, int count, long elapsed) {
-            sets.get(exerciseId).add(newSet(String.valueOf(count), count, elapsed));
+        public void addSet(int exerciseId, int count, int elapsed) {
+            sets.get(exerciseId).add(newSet(count, elapsed));
             notifyDataSetChanged();
         }
 
@@ -191,19 +192,6 @@ public class NewWorkoutActivity extends Activity {
                         @Override
                         public void onClick(View v) {
 
-                            // why standard is not visible by compiler?
-                            final NumberPicker.Formatter twoDigitFormatter = new NumberPicker.Formatter() {
-                                final StringBuilder mBuilder = new StringBuilder();
-                                final java.util.Formatter mFmt = new java.util.Formatter(mBuilder, java.util.Locale.US);
-                                final Object[] mArgs = new Object[1];
-                                public String format(int value) {
-                                    mArgs[0] = value;
-                                    mBuilder.delete(0, mBuilder.length());
-                                    mFmt.format("%02d", mArgs);
-                                    return mFmt.toString();
-                                }
-                            };
-
                             View picker = NewWorkoutActivity.this.getLayoutInflater().inflate(R.layout.duration_picker, null);
                             final NumberPicker hrsPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_hr);
                             hrsPicker.setMinValue(0);
@@ -247,7 +235,7 @@ public class NewWorkoutActivity extends Activity {
 
                     ArrayList<HashMap<String, Object>> currentSets = sets.get(groupPosition);
                     if (!currentSets.isEmpty()) {
-                        int lastSetCount = (Integer)currentSets.get(currentSets.size() - 1).get("count");
+                        int lastSetCount = Integer.valueOf(currentSets.get(currentSets.size() - 1).get("count").toString());
                         numberPicker.setValue(lastSetCount);
                     }
 
@@ -258,7 +246,7 @@ public class NewWorkoutActivity extends Activity {
                                 public void onClick(DialogInterface dialog, int whichButton) {
                                     Integer count = numberPicker.getValue();
                                     exerciseListView.expandGroup(groupPosition);
-                                    addSet(groupPosition, count, elapsed.get());
+                                    addSet(groupPosition, count, (int)elapsed.get());
                                 }
                             })
                             .setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
@@ -273,18 +261,27 @@ public class NewWorkoutActivity extends Activity {
 
         private HashMap<String, Object> newExercise(String name) {
             HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put("name", name);
+            map.put(EXERCISE_NAME, name);
             return map;
         }
 
-        private HashMap<String, Object> newSet(String name, Integer count, Long elapsed) {
+        private String formatElapsed(int seconds) {
+            StringBuilder sb = new StringBuilder(8);
+            sb.append(twoDigitFormatter.format(seconds / 60 / 60));
+            sb.append(':');
+            sb.append(twoDigitFormatter.format(seconds / 60 % 60));
+            sb.append(':');
+            sb.append(twoDigitFormatter.format(seconds % 60));
+            return sb.toString();
+        }
+
+        private HashMap<String, Object> newSet(Integer count, Integer elapsed) {
             HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put("name", name);
-            map.put("count", count);
+            map.put(SET_COUNT, String.valueOf(count));
             if (elapsed > 0) {
-                map.put("elapsed", elapsed);
+                map.put(SET_DURATION, formatElapsed(elapsed));
             } else {
-                map.put("elapsed", "");
+                map.put(SET_DURATION, "");
             }
             return map;
         }
@@ -383,7 +380,7 @@ public class NewWorkoutActivity extends Activity {
         for (int i = 0; i < exerciseAdapter.getExercises().size(); ++i) {
             text.append(i + 1);
             text.append(". ");
-            text.append(exerciseAdapter.getExercises().get(i).get("name"));
+            text.append(exerciseAdapter.getExercises().get(i).get(EXERCISE_NAME));
             text.append("\n");
 
             ArrayList<HashMap<String, Object>> currentSets = exerciseAdapter.getSets().get(i);
@@ -391,7 +388,9 @@ public class NewWorkoutActivity extends Activity {
             for (int j = 0; j < currentSets.size(); ++j) {
                 text.append(j + 1);
                 text.append(") ");
-                text.append(currentSets.get(j).get("name"));
+                text.append(currentSets.get(j).get(SET_COUNT));
+                text.append(" ");
+                text.append(currentSets.get(j).get(SET_DURATION));
                 text.append("\n");
             }
             text.append("\n");
@@ -522,4 +521,17 @@ public class NewWorkoutActivity extends Activity {
         @Override
         public T get() throws InterruptedException, ExecutionException { throw e; }
     }
+
+    // why standard is not visible by compiler?
+    final NumberPicker.Formatter twoDigitFormatter = new NumberPicker.Formatter() {
+        final StringBuilder mBuilder = new StringBuilder();
+        final java.util.Formatter mFmt = new java.util.Formatter(mBuilder, java.util.Locale.US);
+        final Object[] mArgs = new Object[1];
+        public String format(int value) {
+            mArgs[0] = value;
+            mBuilder.delete(0, mBuilder.length());
+            mFmt.format("%02d", mArgs);
+            return mFmt.toString();
+        }
+    };
 }
