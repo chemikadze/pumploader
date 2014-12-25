@@ -8,15 +8,18 @@
     <NumberPicker
             android:id="@+id/duration_picker_hr"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:descendantFocusability="blocksDescendants"/>
     <NumberPicker
             android:id="@+id/duration_picker_min"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:descendantFocusability="blocksDescendants"/>
     <NumberPicker
             android:id="@+id/duration_picker_sec"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:descendantFocusability="blocksDescendants"/>
 
 
 </LinearLayout>
