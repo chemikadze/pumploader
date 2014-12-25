@@ -6,6 +6,7 @@ import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -34,11 +35,13 @@ public class NewWorkoutActivity extends Activity {
     public static final String SET_COUNT = "count";
     public static final String EXERCISE_NAME = "name";
 
-    private final String tag = this.getClass().getSimpleName();
+    public static final String LOG_TAG = NewWorkoutActivity.class.getSimpleName();
 
     private ExercisesAdapter exerciseAdapter;
     private EditText descriptionWidget;
     private ExpandableListView exerciseListView;
+
+    private ProgressDialog progressDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -225,10 +228,7 @@ public class NewWorkoutActivity extends Activity {
                                             chrono.setBase(SystemClock.elapsedRealtime() - elapsed.get() * 1000);
                                         }
                                     })
-                                    .setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int whichButton) {
-                                        }
-                                    })
+                                    .setNegativeButton(getString(R.string.btn_cancel), null)
                                     .show();
                         }
                     });
@@ -249,10 +249,7 @@ public class NewWorkoutActivity extends Activity {
                                     addSet(groupPosition, count, (int)elapsed.get());
                                 }
                             })
-                            .setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
-                                }
-                            })
+                            .setNegativeButton(getString(R.string.btn_cancel), null)
                             .show();
                 }
             });
@@ -333,10 +330,7 @@ public class NewWorkoutActivity extends Activity {
                     exerciseAdapter.addExercise(exercise);
                 }
             })
-            .setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                }
-            })
+            .setNegativeButton(getString(R.string.btn_cancel), null)
             .show();
     }
 
@@ -350,12 +344,12 @@ public class NewWorkoutActivity extends Activity {
                     try {
                         startActivityForResult((Intent)future.getResult().get(AccountManager.KEY_INTENT), ADD_ACCOUNT_REQUEST);
                     } catch (Exception e) {
-                        Toast.makeText(getApplicationContext(), "Failed to add account", Toast.LENGTH_LONG).show();
+                        errorDialog(getString(R.string.failed_to_request_account));
                     }
                 }
             }, null);
         } else {
-            startUpload();
+            startUpload(as[0]);
         }
     }
 
@@ -367,9 +361,19 @@ public class NewWorkoutActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == ADD_ACCOUNT_REQUEST) {
             if (resultCode == RESULT_OK) {
-                startUpload();
-            } else {
-                Toast.makeText(getApplicationContext(), "Account was not added, upload cancelled", Toast.LENGTH_SHORT).show();
+                final AccountManager am = AccountManager.get(getApplicationContext());
+                Account[] as = am.getAccountsByType(getString(R.string.account_type));
+                if (as.length == 0) {
+                    errorDialog(getString(R.string.account_was_not_added));
+                } else {
+                    startUpload(as[0]);
+                }
+            } else if (resultCode == NewAccountActivity.RESULT_FAILED) {
+                String message = data.getStringExtra(AccountManager.KEY_ERROR_MESSAGE);
+                if (message == null) {
+                    message = getString(R.string.auth_failed);
+                }
+                errorDialog(message);
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -403,15 +407,14 @@ public class NewWorkoutActivity extends Activity {
         return text.toString();
     }
 
-    private void startUpload() {
-        EditText titleWidget = (EditText)findViewById(R.id.title_text);
-        descriptionWidget = (EditText)findViewById(R.id.description_text);
-        CheckBox isPrivateWidget = (CheckBox)findViewById(R.id.is_private);
+    private void startUpload(Account account) {
+        EditText titleWidget = (EditText) findViewById(R.id.title_text);
+        descriptionWidget = (EditText) findViewById(R.id.description_text);
+        CheckBox isPrivateWidget = (CheckBox) findViewById(R.id.is_private);
 
         String title = titleWidget.getText().toString();
         String descriptionText = descriptionWidget.getText().toString().trim();
         String constructorText = getDescriptionFromConstructor().trim();
-        Toast.makeText(getApplicationContext(), constructorText, Toast.LENGTH_LONG).show();
         StringBuilder description = new StringBuilder();
         description.append(descriptionText);
         if (!descriptionText.isEmpty() && !constructorText.isEmpty()) {
@@ -419,19 +422,22 @@ public class NewWorkoutActivity extends Activity {
         }
         description.append(constructorText);
 
-        uploadWorkout(title, description.toString(), isPrivateWidget.isChecked());
-
-        setResult(RESULT_OK);
-        finish();
-    }
-
-    private void uploadWorkout(final String title, final String description, final Boolean isPrivate) {
         final AccountManager am = AccountManager.get(getApplicationContext());
         Account[] as = am.getAccountsByType(getString(R.string.account_type));
         if (as.length == 0) {
-            Toast.makeText(getApplicationContext(), "Account was not added, upload cancelled", Toast.LENGTH_SHORT).show();
+            new AlertDialog.Builder(getApplicationContext())
+                    .setMessage("Account was not added, upload cancelled")
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            NewWorkoutActivity.this.setResult(RESULT_CANCELED);
+                            NewWorkoutActivity.this.finish();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
         } else {
-            uploadWorkout(as[0], title, description, isPrivate);
+            uploadWorkout(as[0], title, description.toString(), isPrivateWidget.isChecked());
         }
     }
 
@@ -444,47 +450,77 @@ public class NewWorkoutActivity extends Activity {
                 try {
                     token = future.getResult().getString(AccountManager.KEY_AUTHTOKEN);
                 } catch (Exception e) {
-                    String msg = "Failed to get account token: " + e.getMessage();
-                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+                    Log.e(LOG_TAG, "Failed to get account token: " + e.getMessage(), e);
+                    errorDialog(getString(R.string.failed_get_token));
                     return;
                 }
+                progressDialog = new ProgressDialog(NewWorkoutActivity.this);
+                progressDialog.setTitle(R.string.upload_dialog_title);
+                progressDialog.setMessage(description);
+                progressDialog.show();
                 new UploadActivityTask().execute(token, title, description, isPrivate.toString());
             }
         }, null);
     }
 
     class UploadActivityTask extends AsyncTask<String, String, Future<Integer>> {
+        private String token;
+        private String title;
+        private String description;
+        private Boolean isPrivate;
+
         @Override
         protected Future<Integer> doInBackground(String... params) {
-            String token = params[0];
-            String title = params[1];
-            String description = params[2];
-            Boolean isPrivate = Boolean.valueOf(params[3]);
-
+            token = params[0];
+            title = params[1];
+            description = params[2];
+            isPrivate = Boolean.valueOf(params[3]);
             try {
                 JStrava strava = new JStravaV3(token);
                 Date date = new Date();
                 String dateString = date.toString();
                 org.jstrava.entities.activity.Activity a = strava.createActivity(title, "Workout", dateString, 1, description, 0);
-                if (isPrivate) {
-                    HashMap<String, Object> activityParams = new HashMap<String, Object>();
-                    activityParams.put("private", "1");
-                    strava.updateActivity(a.getId(), activityParams);
+                if (a == null) {
+                    return new Failure<Integer>(new ExecutionException(getString(R.string.upload_failed_msg), null));
+                } else {
+                    if (isPrivate) {
+                        HashMap<String, Object> activityParams = new HashMap<String, Object>();
+                        activityParams.put("private", "1");
+                        strava.updateActivity(a.getId(), activityParams);
+                    }
+                    return new Success<Integer>(a.getId());
                 }
-                return new Success<Integer>(a.getId());
             } catch (Exception t) {
-                return new Failure<Integer>(new ExecutionException(t.getMessage(), t));
+                return new Failure<Integer>(new ExecutionException(getString(R.string.upload_unexpected_error), t));
             }
         }
 
         @Override
         protected void onPostExecute(Future<Integer> r) {
+            if (progressDialog != null) {
+                progressDialog.dismiss();
+                progressDialog = null;
+            }
             try {
-                Toast.makeText(getApplicationContext(), "Uploaded activity with id " + r.get(), Toast.LENGTH_LONG).show();
+                int activityId = r.get();
+                if (activityId != 0) {
+                    Toast.makeText(getApplicationContext(), R.string.upload_succeeded, Toast.LENGTH_SHORT).show();
+                    NewWorkoutActivity.this.setResult(RESULT_OK);
+                    NewWorkoutActivity.this.finish();
+                }
             } catch (Exception e) {
-                String msg = "Failed to upload activity: " + e.getMessage();
-                Log.i(tag, msg, e);
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+                Log.i(LOG_TAG, "Failed to upload activity: " + e.getMessage(), e);
+                new AlertDialog.Builder(NewWorkoutActivity.this)
+                        .setTitle(R.string.upload_failed_title)
+                        .setMessage(e.getMessage())
+                        .setPositiveButton(R.string.btn_retry, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                new UploadActivityTask().execute(token, title, description, isPrivate.toString());
+                            }
+                        })
+                        .setNegativeButton(R.string.btn_cancel, null)
+                        .show();
             }
         }
     }
@@ -539,4 +575,12 @@ public class NewWorkoutActivity extends Activity {
             return mFmt.toString();
         }
     };
+
+    private void errorDialog(String message) {
+        new AlertDialog.Builder(this)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
 }

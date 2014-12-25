@@ -16,7 +16,8 @@ import org.jstrava.authenticator.StravaAuthenticator;
 
 public class NewAccountActivity extends AccountAuthenticatorActivity {
 
-    private String tag = this.getClass().getSimpleName();
+    public static final String LOG_TAG = NewAccountActivity.class.getSimpleName();
+    public static final int RESULT_FAILED = RESULT_FIRST_USER;
 
     private StravaAuthenticator authenticator;
 
@@ -46,7 +47,7 @@ public class NewAccountActivity extends AccountAuthenticatorActivity {
                     String authcode = parsed.getQueryParameter("code");
                     onCodeReceived(authcode);
                 } catch (Exception e) {
-                    Log.e(tag, "Failed to parse URL", e);
+                    Log.e(LOG_TAG, "Failed to parse URL", e);
                 }
                 return true;
             } else {
@@ -61,13 +62,18 @@ public class NewAccountActivity extends AccountAuthenticatorActivity {
                     final Intent res = new Intent();
                     try {
                         AuthResponse parsedResponse = authenticator.getToken(authcode);
-                        res.putExtra(AccountManager.KEY_ACCOUNT_NAME, parsedResponse.getAthlete().getFirstname());
-                        res.putExtra(AccountManager.KEY_ACCOUNT_TYPE, getString(R.string.account_type));
-                        res.putExtra(AccountManager.KEY_AUTHTOKEN, parsedResponse.getAccess_token());
+                        if (parsedResponse != null) {
+                            res.putExtra(AccountManager.KEY_ACCOUNT_NAME, parsedResponse.getAthlete().getFirstname());
+                            res.putExtra(AccountManager.KEY_ACCOUNT_TYPE, getString(R.string.account_type));
+                            res.putExtra(AccountManager.KEY_AUTHTOKEN, parsedResponse.getAccess_token());
+                        } else {
+                            // TODO: correctly handle error from strava!
+                            res.putExtra(AccountManager.KEY_ERROR_MESSAGE, getString(R.string.auth_failed));
+                        }
                     } catch (Exception e) {
-                        // TODO: correctly handle auth messages!
-                        Log.e(tag, e.getMessage(), e);
-                        res.putExtra(AccountManager.KEY_ERROR_MESSAGE, e.getMessage());
+                        Log.e(LOG_TAG, e.getMessage(), e);
+                        setResult(RESULT_FIRST_USER);
+                        res.putExtra(AccountManager.KEY_ERROR_MESSAGE, R.string.login_unexpected_error);
                     }
                     return res;
                 }
@@ -76,7 +82,8 @@ public class NewAccountActivity extends AccountAuthenticatorActivity {
                 protected void onPostExecute(Intent intent) {
                     String errorMsg = intent.getStringExtra(AccountManager.KEY_ERROR_MESSAGE);
                     if (errorMsg != null) {
-                        Toast.makeText(getApplicationContext(), errorMsg, Toast.LENGTH_LONG).show();
+                        setResult(RESULT_FAILED, intent);
+                        finish();
                     } else {
                         finishLogin(intent);
                     }
