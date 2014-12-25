@@ -244,6 +244,7 @@ public class NewWorkoutActivity extends Activity {
                             .setView(view)
                             .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
+                                    numberPicker.clearFocus();
                                     Integer count = numberPicker.getValue();
                                     exerciseListView.expandGroup(groupPosition);
                                     addSet(groupPosition, count, (int)elapsed.get());
