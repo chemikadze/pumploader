@@ -31,9 +31,14 @@ public class NewWorkoutActivity extends Activity {
 
     private static final String TAG_DESCRIPTION = "description";
     private static final String TAG_EXERCISES = "exercises";
-    public static final String SET_DURATION = "duration";
-    public static final String SET_COUNT = "count";
-    public static final String EXERCISE_NAME = "name";
+
+    private static final String SET_DURATION = "duration";
+    private static final String SET_COUNT = "count";
+    private static final String EXERCISE_NAME = "name";
+
+    private static final String STATE_EXERCISE_DATA = "exercises";
+    private static final String STATE_SETS_DATA = "sets";
+    private static final String STATE_TAB = "tab";
 
     public static final String LOG_TAG = NewWorkoutActivity.class.getSimpleName();
 
@@ -74,11 +79,29 @@ public class NewWorkoutActivity extends Activity {
         });
         exerciseListView.addFooterView(footer, null, false);
 
-        ArrayList<HashMap<String, Object>> exercises = new ArrayList<HashMap<String, Object>>();
+        ArrayList<HashMap<String, Object>> exercises;
+        Object savedExercises = null;
+        if (savedInstanceState != null) {
+            savedExercises = savedInstanceState.getSerializable(STATE_EXERCISE_DATA);
+        }
+        if (savedExercises == null) {
+            exercises = new ArrayList<HashMap<String, Object>>();
+        } else {
+            exercises = (ArrayList<HashMap<String, Object>>)savedExercises;
+        }
         String[] exerciseAttrKeys = new String[] { EXERCISE_NAME };
         int[] exerciseAttrVals = new int[] { R.id.exercise_name };
 
-        ArrayList<ArrayList<HashMap<String, Object>>> sets = new ArrayList<ArrayList<HashMap<String, Object>>>();
+        ArrayList<ArrayList<HashMap<String, Object>>> sets;
+        Object savedSets = null;
+        if (savedInstanceState != null) {
+            savedSets = savedInstanceState.getSerializable(STATE_SETS_DATA);
+        }
+        if (savedSets == null) {
+            sets = new ArrayList<ArrayList<HashMap<String, Object>>>();
+        } else {
+            sets = (ArrayList<ArrayList<HashMap<String, Object>>>)savedSets;
+        }
         String[] setAttrKeys = new String[] { SET_COUNT, SET_DURATION };
         int[] setAttrVals = new int[] { R.id.exercise_name, R.id.exercise_duration };
 
@@ -95,15 +118,30 @@ public class NewWorkoutActivity extends Activity {
         String caption = prefix + " " + dateStr;
         titleWidget.setText(caption);
 
+        String currentTabTag = TAG_EXERCISES;
+
         if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
             descriptionWidget = (EditText)findViewById(R.id.description_text);
             String description = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-            tabHost.setCurrentTabByTag(TAG_DESCRIPTION);
+            currentTabTag = TAG_DESCRIPTION;
             descriptionWidget.setText(description);
-        } else {
-            tabHost.setCurrentTabByTag(TAG_EXERCISES);
         }
 
+        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_TAB)) {
+            currentTabTag = savedInstanceState.getString(STATE_TAB);
+        }
+
+        tabHost.setCurrentTabByTag(currentTabTag);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(STATE_EXERCISE_DATA, exerciseAdapter.getExercises());
+        outState.putSerializable(STATE_SETS_DATA, exerciseAdapter.getSets());
+
+        TabHost tabHost = (TabHost)findViewById(R.id.tab_host_input_type);
+        outState.putString(STATE_TAB, tabHost.getCurrentTabTag());
     }
 
     class ExercisesAdapter extends SimpleExpandableListAdapter {
