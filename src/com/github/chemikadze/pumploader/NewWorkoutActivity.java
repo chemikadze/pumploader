@@ -10,6 +10,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -29,8 +30,8 @@ public class NewWorkoutActivity extends Activity {
 
     private static final Integer ADD_ACCOUNT_REQUEST = 1;
 
-    private static final String TAG_DESCRIPTION = "description";
-    private static final String TAG_EXERCISES = "exercises";
+    private static final String TAB_TAG_DESCRIPTION = "description";
+    private static final String TAB_TAG_EXERCISES = "exercises";
 
     private static final String SET_DURATION = "duration";
     private static final String SET_COUNT = "count";
@@ -40,12 +41,14 @@ public class NewWorkoutActivity extends Activity {
     private static final String STATE_SETS_DATA = "sets";
     private static final String STATE_TAB = "tab";
 
+    private static final String PREFERENCE_EXERCISE_TYPES = "exercises";
+
     public static final String LOG_TAG = NewWorkoutActivity.class.getSimpleName();
 
+    private ArrayList<String> exerciseTypes;
     private ExercisesAdapter exerciseAdapter;
     private EditText descriptionWidget;
     private ExpandableListView exerciseListView;
-
     private ProgressDialog progressDialog;
 
     @Override
@@ -58,12 +61,12 @@ public class NewWorkoutActivity extends Activity {
 
         TabHost.TabSpec spec;
 
-        spec = tabHost.newTabSpec(TAG_EXERCISES);
+        spec = tabHost.newTabSpec(TAB_TAG_EXERCISES);
         spec.setContent(R.id.tab_ex);
         spec.setIndicator(getString(R.string.tab_exersises));
         tabHost.addTab(spec);
 
-        spec = tabHost.newTabSpec(TAG_DESCRIPTION);
+        spec = tabHost.newTabSpec(TAB_TAG_DESCRIPTION);
         spec.setContent(R.id.tab_descr);
         spec.setIndicator(getString(R.string.tab_description));
         tabHost.addTab(spec);
@@ -118,12 +121,12 @@ public class NewWorkoutActivity extends Activity {
         String caption = prefix + " " + dateStr;
         titleWidget.setText(caption);
 
-        String currentTabTag = TAG_EXERCISES;
+        String currentTabTag = TAB_TAG_EXERCISES;
 
         if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
             descriptionWidget = (EditText)findViewById(R.id.description_text);
             String description = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-            currentTabTag = TAG_DESCRIPTION;
+            currentTabTag = TAB_TAG_DESCRIPTION;
             descriptionWidget.setText(description);
         }
 
@@ -132,6 +135,9 @@ public class NewWorkoutActivity extends Activity {
         }
 
         tabHost.setCurrentTabByTag(currentTabTag);
+
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        restoreExerciseTypes(preferences);
     }
 
     @Override
@@ -371,6 +377,7 @@ public class NewWorkoutActivity extends Activity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String item = exerciseTypeEdit.getText().toString();
+                                addExerciseType(item);
                                 spinnerAdapter.add(item);
                                 spinnerAdapter.notifyDataSetChanged();
                                 spinner.setSelection(spinnerAdapter.getPosition(item));
@@ -413,8 +420,38 @@ public class NewWorkoutActivity extends Activity {
         }
     }
 
-    protected String[] getExerciseTypes() {
-        return getResources().getStringArray(R.array.default_workout_types);
+    private void restoreExerciseTypes(SharedPreferences preferences) {
+        String serializedExerciseTypes = preferences.getString(PREFERENCE_EXERCISE_TYPES, "");
+        exerciseTypes = new ArrayList<String>();
+        if (!serializedExerciseTypes.isEmpty()) {
+            String[] items = serializedExerciseTypes.split("\n");
+            for (int i = 0; i < items.length; i++) {
+                exerciseTypes.add(items[i]);
+            }
+
+        } else {
+            String[] items = getResources().getStringArray(R.array.default_workout_types);
+            for (int i = 0; i < items.length; i++) {
+                exerciseTypes.add(items[i]);
+            }
+        }
+    }
+
+    private void addExerciseType(String typename) {
+        exerciseTypes.add(typename);
+        StringBuilder serialized = new StringBuilder();
+        for (int i = 0; i < exerciseTypes.size(); i++) {
+            serialized.append(exerciseTypes.get(i));
+            if (i != exerciseTypes.size() - 1) {
+                serialized.append('\n');
+            }
+        }
+        SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+        editor.putString(PREFERENCE_EXERCISE_TYPES, serialized.toString()).apply();
+    }
+
+    protected List<String> getExerciseTypes() {
+        return exerciseTypes;
     }
 
     @Override
