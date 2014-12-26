@@ -321,6 +321,27 @@ public class NewWorkoutActivity extends Activity {
         final View view = this.getLayoutInflater().inflate(R.layout.add_exercise_dialog, null);
         final Spinner spinner = (Spinner)view.findViewById(R.id.exercise_type_spinner);
         spinner.setAdapter(spinnerAdapter);
+        final ImageButton addButton = (ImageButton)view.findViewById(R.id.add_exercise);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final EditText exerciseTypeEdit = new EditText(NewWorkoutActivity.this);
+                new AlertDialog.Builder(NewWorkoutActivity.this)
+                        .setTitle(R.string.add_exercise_type)
+                        .setView(exerciseTypeEdit)
+                        .setPositiveButton(R.string.btn_add, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String item = exerciseTypeEdit.getText().toString();
+                                spinnerAdapter.add(item);
+                                spinnerAdapter.notifyDataSetChanged();
+                                spinner.setSelection(spinnerAdapter.getPosition(item));
+                            }
+                        })
+                        .setNegativeButton(R.string.btn_cancel, null)
+                        .show();
+            }
+        });
 
         new AlertDialog.Builder(this)
             .setTitle(getString(R.string.add_exercise))

@@ -42,4 +42,5 @@
     <string name="login_unexpected_error">Unexpected error while adding an account</string>
     <string name="auth_failed">Authentication failed</string>
     <string name="upload_succeeded">Activity uploaded successfully</string>
+    <string name="add_exercise_type">Add exercise type</string>
 </resources>
