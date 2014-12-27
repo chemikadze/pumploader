@@ -43,4 +43,6 @@
     <string name="auth_failed">Authentication failed</string>
     <string name="upload_succeeded">Activity uploaded successfully</string>
     <string name="add_exercise_type">Add exercise type</string>
+    <string name="remove_exercise_type">Remove exercise type</string>
+    <string name="btn_remove">Remove</string>
 </resources>

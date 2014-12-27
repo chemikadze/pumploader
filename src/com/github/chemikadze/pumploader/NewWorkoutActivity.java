@@ -372,7 +372,17 @@ public class NewWorkoutActivity extends Activity {
             removeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    deleteExerciseType(getItem(position));
+                    new AlertDialog.Builder(NewWorkoutActivity.this)
+                            .setTitle(R.string.remove_exercise_type)
+                            .setMessage(getItem(position))
+                            .setPositiveButton(R.string.btn_remove, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    deleteExerciseType(getItem(position));
+                                }
+                            })
+                            .setNegativeButton(R.string.btn_cancel, null)
+                            .show();
                 }
             });
             return view;
