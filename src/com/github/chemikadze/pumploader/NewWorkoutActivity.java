@@ -358,9 +358,54 @@ public class NewWorkoutActivity extends Activity {
         }
     }
 
+    class ExerciseSpinnerAdapter extends ArrayAdapter<String> {
+
+        public ExerciseSpinnerAdapter(Context context, int textViewResourceId, int dropdownResourceId, List<String> objects) {
+            super(context, textViewResourceId, R.id.TextView01, objects);
+            setDropDownViewResource(dropdownResourceId);
+        }
+
+        @Override
+        public View getDropDownView(final int position, View convertView, ViewGroup parent) {
+            View view = super.getDropDownView(position, convertView, parent);
+            View removeButton = view.findViewById(R.id.remove_exercise_type);
+            removeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    deleteExerciseType(getItem(position));
+                }
+            });
+            return view;
+        }
+
+        public void addExerciseType(String typename) {
+            add(typename);
+            notifyDataSetChanged();
+            saveExerciseTypes();
+        }
+
+        public void deleteExerciseType(String typename) {
+            remove(typename);
+            notifyDataSetChanged();
+            saveExerciseTypes();
+        }
+
+        private void saveExerciseTypes() {
+            StringBuilder serialized = new StringBuilder();
+            for (int i = 0; i < exerciseTypes.size(); i++) {
+                serialized.append(exerciseTypes.get(i));
+                if (i != exerciseTypes.size() - 1) {
+                    serialized.append('\n');
+                }
+            }
+            SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+            editor.putString(PREFERENCE_EXERCISE_TYPES, serialized.toString()).apply();
+        }
+
+    }
+
     public void onAddExercise(View v) {
-        final ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, R.layout.spinner_item);
-        spinnerAdapter.addAll(getExerciseTypes());
+        final ExerciseSpinnerAdapter spinnerAdapter = new ExerciseSpinnerAdapter(this, R.layout.spinner_item_selected, R.layout.spinner_item_dropdown, getExerciseTypes());
 
         final View view = this.getLayoutInflater().inflate(R.layout.add_exercise_dialog, null);
         final Spinner spinner = (Spinner)view.findViewById(R.id.exercise_type_spinner);
@@ -377,9 +422,7 @@ public class NewWorkoutActivity extends Activity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String item = exerciseTypeEdit.getText().toString();
-                                addExerciseType(item);
-                                spinnerAdapter.add(item);
-                                spinnerAdapter.notifyDataSetChanged();
+                                spinnerAdapter.addExerciseType(item);
                                 spinner.setSelection(spinnerAdapter.getPosition(item));
                             }
                         })
@@ -435,19 +478,6 @@ public class NewWorkoutActivity extends Activity {
                 exerciseTypes.add(items[i]);
             }
         }
-    }
-
-    private void addExerciseType(String typename) {
-        exerciseTypes.add(typename);
-        StringBuilder serialized = new StringBuilder();
-        for (int i = 0; i < exerciseTypes.size(); i++) {
-            serialized.append(exerciseTypes.get(i));
-            if (i != exerciseTypes.size() - 1) {
-                serialized.append('\n');
-            }
-        }
-        SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
-        editor.putString(PREFERENCE_EXERCISE_TYPES, serialized.toString()).apply();
     }
 
     protected List<String> getExerciseTypes() {

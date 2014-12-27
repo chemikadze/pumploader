@@ -20,7 +20,7 @@
             android:src="@drawable/ic_action_add"
             android:contentDescription="@string/add_exercise"
             android:layout_weight="0"
-            android:layout_gravity="top"
+            android:layout_gravity="center_vertical"
             android:layout_marginRight="5dp"
             android:background="@android:color/transparent"/>
 </LinearLayout>

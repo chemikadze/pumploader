@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+        >
+
+    <Button
+            android:id="@+id/remove_exercise_type"
+            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_gravity="center_vertical"
+            android:drawablePadding="0dp"
+            android:textSize="0sp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:paddingRight="0dp"
+            android:paddingLeft="0dp"
+            android:drawableTop="@drawable/ic_delete"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/remove"
+            android:focusable="false"
+            android:layout_weight="0"
+            />
+
+    <TextView android:id="@+id/TextView01"
+              android:layout_width="wrap_content"
+              android:layout_height="50dp"
+              android:textAppearance="?android:attr/textAppearanceLarge"
+              android:gravity="center_vertical"
+              android:paddingRight="10dp"
+              android:paddingTop="5dp"
+              android:paddingBottom="5dp"
+              android:text="test"
+              android:layout_weight="1">
+
+    </TextView>
+
+</LinearLayout>
