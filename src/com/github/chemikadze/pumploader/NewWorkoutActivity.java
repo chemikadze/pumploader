@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class NewWorkoutActivity extends Activity {
 
     private static final Integer ADD_ACCOUNT_REQUEST = 1;
+    private static final Integer EDIT_EXERCISES_REQUEST = 2;
 
     private static final String TAB_TAG_DESCRIPTION = "description";
     private static final String TAB_TAG_EXERCISES = "exercises";
@@ -358,64 +359,20 @@ public class NewWorkoutActivity extends Activity {
         }
     }
 
-    class ExerciseSpinnerAdapter extends ArrayAdapter<String> {
-
-        public ExerciseSpinnerAdapter(Context context, int textViewResourceId, int dropdownResourceId, List<String> objects) {
-            super(context, textViewResourceId, R.id.TextView01, objects);
-            setDropDownViewResource(dropdownResourceId);
-        }
-
-        @Override
-        public View getDropDownView(final int position, View convertView, ViewGroup parent) {
-            View view = super.getDropDownView(position, convertView, parent);
-            View removeButton = view.findViewById(R.id.remove_exercise_type);
-            removeButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    new AlertDialog.Builder(NewWorkoutActivity.this)
-                            .setTitle(R.string.remove_exercise_type)
-                            .setMessage(getItem(position))
-                            .setPositiveButton(R.string.btn_remove, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    deleteExerciseType(getItem(position));
-                                }
-                            })
-                            .setNegativeButton(R.string.btn_cancel, null)
-                            .show();
-                }
-            });
-            return view;
-        }
-
-        public void addExerciseType(String typename) {
-            add(typename);
-            notifyDataSetChanged();
-            saveExerciseTypes();
-        }
-
-        public void deleteExerciseType(String typename) {
-            remove(typename);
-            notifyDataSetChanged();
-            saveExerciseTypes();
-        }
-
-        private void saveExerciseTypes() {
-            StringBuilder serialized = new StringBuilder();
-            for (int i = 0; i < exerciseTypes.size(); i++) {
-                serialized.append(exerciseTypes.get(i));
-                if (i != exerciseTypes.size() - 1) {
-                    serialized.append('\n');
-                }
+    private void saveExerciseTypes() {
+        StringBuilder serialized = new StringBuilder();
+        for (int i = 0; i < exerciseTypes.size(); i++) {
+            serialized.append(exerciseTypes.get(i));
+            if (i != exerciseTypes.size() - 1) {
+                serialized.append('\n');
             }
-            SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
-            editor.putString(PREFERENCE_EXERCISE_TYPES, serialized.toString()).apply();
         }
-
+        SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+        editor.putString(PREFERENCE_EXERCISE_TYPES, serialized.toString()).apply();
     }
 
     public void onAddExercise(View v) {
-        final ExerciseSpinnerAdapter spinnerAdapter = new ExerciseSpinnerAdapter(this, R.layout.spinner_item_selected, R.layout.spinner_item_dropdown, getExerciseTypes());
+        final ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, R.layout.spinner_item_selected, getExerciseTypes());
 
         final View view = this.getLayoutInflater().inflate(R.layout.add_exercise_dialog, null);
         final Spinner spinner = (Spinner)view.findViewById(R.id.exercise_type_spinner);
@@ -424,20 +381,11 @@ public class NewWorkoutActivity extends Activity {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final EditText exerciseTypeEdit = new EditText(NewWorkoutActivity.this);
-                new AlertDialog.Builder(NewWorkoutActivity.this)
-                        .setTitle(R.string.add_exercise_type)
-                        .setView(exerciseTypeEdit)
-                        .setPositiveButton(R.string.btn_add, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                String item = exerciseTypeEdit.getText().toString();
-                                spinnerAdapter.addExerciseType(item);
-                                spinner.setSelection(spinnerAdapter.getPosition(item));
-                            }
-                        })
-                        .setNegativeButton(R.string.btn_cancel, null)
-                        .show();
+                Intent intent = new Intent(getApplicationContext(), EditExerciseTypes.class);
+                Bundle data = new Bundle();
+                data.putStringArrayList(EditExerciseTypes.EXERCISE_LIST, new ArrayList<String>(exerciseTypes));
+                intent.putExtras(data);
+                startActivityForResult(intent, EDIT_EXERCISES_REQUEST);
             }
         });
 
@@ -511,6 +459,13 @@ public class NewWorkoutActivity extends Activity {
                     message = getString(R.string.auth_failed);
                 }
                 errorDialog(message);
+            }
+        } else if (requestCode == EDIT_EXERCISES_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                exerciseTypes.clear();
+                ArrayList<String> types = data.getStringArrayListExtra(EditExerciseTypes.EXERCISE_LIST);
+                exerciseTypes.addAll(types);
+                saveExerciseTypes();
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
