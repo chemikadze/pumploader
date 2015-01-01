@@ -51,6 +51,7 @@ public class NewWorkoutActivity extends Activity {
     private EditText descriptionWidget;
     private ExpandableListView exerciseListView;
     private ProgressDialog progressDialog;
+    private boolean isPrivateSelected;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -139,6 +140,33 @@ public class NewWorkoutActivity extends Activity {
 
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         restoreExerciseTypes(preferences);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.actionbar, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_is_private:
+                item.setChecked(!item.isChecked());
+                isPrivateSelected = item.isChecked();
+                if (item.isChecked()) {
+                    item.setIcon(R.drawable.ic_lock_closed);
+                } else {
+                    item.setIcon(R.drawable.ic_lock_opened);
+                }
+                return true;
+            case R.id.menu_upload:
+                onUploadClicked(item.getActionView());
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -502,7 +530,7 @@ public class NewWorkoutActivity extends Activity {
     private void startUpload(Account account) {
         EditText titleWidget = (EditText) findViewById(R.id.title_text);
         descriptionWidget = (EditText) findViewById(R.id.description_text);
-        CheckBox isPrivateWidget = (CheckBox) findViewById(R.id.is_private);
+        Boolean isPrivate = isPrivateSelected;
 
         String title = titleWidget.getText().toString();
         String descriptionText = descriptionWidget.getText().toString().trim();
@@ -529,7 +557,7 @@ public class NewWorkoutActivity extends Activity {
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();
         } else {
-            uploadWorkout(as[0], title, description.toString(), isPrivateWidget.isChecked());
+            uploadWorkout(as[0], title, description.toString(), isPrivate);
         }
     }
 

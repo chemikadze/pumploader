@@ -5,12 +5,13 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class EditExerciseTypes extends Activity {
 
@@ -52,6 +53,23 @@ public class EditExerciseTypes extends Activity {
         ListView exercises = (ListView)findViewById(R.id.edit_exercise_list);
         exercises.addFooterView(footer, null, true);
         exercises.setAdapter(exercisesAdapter);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.actionbar_edit_exercise_types, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_save:
+                onSave(item.getActionView());
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void onAddExercise(View view) {

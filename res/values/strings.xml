@@ -46,4 +46,6 @@
     <string name="upload_succeeded">Activity uploaded successfully</string>
     <string name="remove_exercise_type">Remove exercise type</string>
     <string name="btn_remove">Remove</string>
+    <string name="new_activity_title">New activity</string>
+    <string name="exercise_types_title">Exercises</string>
 </resources>

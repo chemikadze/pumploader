@@ -10,24 +10,5 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"/>
 
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="0">
-
-        <Button
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_cancel"
-                android:layout_weight="1"
-                android:onClick="onCancel"/>
-        <Button
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_save"
-                android:layout_weight="1"
-                android:onClick="onSave"/>
-
-    </LinearLayout>
 
 </LinearLayout>

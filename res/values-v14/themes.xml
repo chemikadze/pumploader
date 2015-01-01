@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="MyAppTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+    <style name="MyAppTheme" parent="@android:style/Theme.Holo.Light">
         <!-- Any customizations for your app running on 4.0+ devices here -->
+        <item name="android:actionBarStyle">@style/CustomActionBarStyle</item>
     </style>
+
+    <style name="CustomActionBarStyle" parent="android:style/Widget.Holo.Light.ActionBar.Solid">
+    </style>
+
 </resources>
