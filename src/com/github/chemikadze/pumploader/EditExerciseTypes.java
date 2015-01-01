@@ -24,9 +24,7 @@ public class EditExerciseTypes extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_exercise_types);
 
-        View footer = getLayoutInflater().inflate(R.layout.add_exercise, null);
-        TextView title = (TextView)footer.findViewById(R.id.add_exercise);
-        title.setText(R.string.add_exercise_type);
+        View footer = getLayoutInflater().inflate(R.layout.add_exercise_type, null);
         footer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
