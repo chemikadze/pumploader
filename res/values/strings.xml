@@ -2,6 +2,7 @@
 <resources>
     <string name="account_type">com.github.chemikadze.pumploader</string>
     <string name="app_name">PumpLoader</string>
+    <string name="share_name">New workout</string>
     <string name="accountname">Login</string>
     <string name="accountpassword">Password</string>
     <string name="submit">Submit</string>
