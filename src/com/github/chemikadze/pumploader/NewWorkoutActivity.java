@@ -7,7 +7,6 @@ import android.accounts.AccountManagerFuture;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -21,10 +20,17 @@ import org.jstrava.connector.JStrava;
 import org.jstrava.connector.JStravaV3;
 
 import java.text.DateFormat;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static com.github.chemikadze.pumploader.ExercisesAdapter.*;
+import static com.github.chemikadze.pumploader.Utils.twoDigitFormatter;
 
 public class NewWorkoutActivity extends Activity {
 
@@ -33,10 +39,6 @@ public class NewWorkoutActivity extends Activity {
 
     private static final String TAB_TAG_DESCRIPTION = "description";
     private static final String TAB_TAG_EXERCISES = "exercises";
-
-    private static final String SET_DURATION = "duration";
-    private static final String SET_COUNT = "count";
-    private static final String EXERCISE_NAME = "name";
 
     private static final String STATE_EXERCISE_DATA = "exercises";
     private static final String STATE_SETS_DATA = "sets";
@@ -94,8 +96,6 @@ public class NewWorkoutActivity extends Activity {
         } else {
             exercises = (ArrayList<HashMap<String, Object>>)savedExercises;
         }
-        String[] exerciseAttrKeys = new String[] { EXERCISE_NAME };
-        int[] exerciseAttrVals = new int[] { R.id.exercise_name };
 
         ArrayList<ArrayList<HashMap<String, Object>>> sets;
         Object savedSets = null;
@@ -107,13 +107,17 @@ public class NewWorkoutActivity extends Activity {
         } else {
             sets = (ArrayList<ArrayList<HashMap<String, Object>>>)savedSets;
         }
-        String[] setAttrKeys = new String[] { SET_COUNT, SET_DURATION };
-        int[] setAttrVals = new int[] { R.id.exercise_name, R.id.exercise_duration };
 
         exerciseAdapter = new ExercisesAdapter(
                 getApplicationContext(),
-                exercises, R.layout.exercise_item, exerciseAttrKeys, exerciseAttrVals,
-                sets, R.layout.set_item, setAttrKeys, setAttrVals);
+                exercises, R.layout.exercise_item,
+                sets, R.layout.set_item);
+        exerciseAdapter.setOnAddClickListenerFactory(new Utils.Function1<Integer, View.OnClickListener>() {
+            @Override
+            View.OnClickListener apply(Integer argument) {
+                return new OnAddClickListener(exerciseAdapter, argument);
+            }
+        });
         exerciseListView.setAdapter(exerciseAdapter);
         registerForContextMenu(exerciseListView);
 
@@ -177,185 +181,6 @@ public class NewWorkoutActivity extends Activity {
 
         TabHost tabHost = (TabHost)findViewById(R.id.tab_host_input_type);
         outState.putString(STATE_TAB, tabHost.getCurrentTabTag());
-    }
-
-    class ExercisesAdapter extends SimpleExpandableListAdapter {
-
-        private ArrayList<HashMap<String, Object>> exercises;
-        private ArrayList<ArrayList<HashMap<String, Object>>> sets;
-
-        public ExercisesAdapter(Context context, ArrayList<HashMap<String, Object>> groupData, int groupLayout, String[] groupFrom, int[] groupTo, ArrayList<ArrayList<HashMap<String, Object>>> childData, int childLayout, String[] childFrom, int[] childTo) {
-            super(context, groupData, groupLayout, groupFrom, groupTo, childData, childLayout, childFrom, childTo);
-            exercises = groupData;
-            sets = childData;
-        }
-
-        public ArrayList<HashMap<String, Object>> getExercises() {
-            return exercises;
-        }
-
-        public ArrayList<ArrayList<HashMap<String, Object>>> getSets() {
-            return sets;
-        }
-
-        public void removeExercise(int id) {
-            exercises.remove(id);
-            sets.remove(id);
-            notifyDataSetChanged();
-        }
-
-        public void addExercise(String description) {
-            exercises.add(newExercise(description));
-            sets.add(new ArrayList<HashMap<String, Object>>());
-            notifyDataSetChanged();
-        }
-
-        public void removeSet(int exerciseId, int setId) {
-            sets.get(exerciseId).remove(setId);
-            notifyDataSetChanged();
-        }
-
-        public void addSet(int exerciseId, int count, int elapsed) {
-            sets.get(exerciseId).add(newSet(count, elapsed));
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public View getGroupView(final int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-            View view = super.getGroupView(groupPosition, isExpanded, convertView, parent);
-            Button addButton = (Button)view.findViewById(R.id.add_set);
-            addButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    View view = NewWorkoutActivity.this.getLayoutInflater().inflate(R.layout.add_set_dialog, null);
-                    final NumberPicker numberPicker = (NumberPicker)view.findViewById(R.id.set_count_picker);
-                    numberPicker.setMinValue(0);
-                    numberPicker.setMaxValue(Integer.MAX_VALUE);
-                    numberPicker.setWrapSelectorWheel(false);
-
-                    final Chronometer chrono = (Chronometer)view.findViewById(R.id.set_chrono);
-                    final AtomicLong elapsed = new AtomicLong(0);
-                    final AtomicBoolean running = new AtomicBoolean(false);
-                    final AtomicBoolean stopped = new AtomicBoolean(false);
-
-                    final ImageButton startButton = (ImageButton)view.findViewById(R.id.set_chrono_start);
-                    startButton.setOnClickListener(new View.OnClickListener() {
-
-                        @Override
-                        public void onClick(View v) {
-                            if (!running.get() && !stopped.get()) {
-                                chrono.setBase(SystemClock.elapsedRealtime());
-                                chrono.start();
-                                running.set(true);
-                                startButton.setImageResource(android.R.drawable.ic_media_pause);
-                            } else if (running.get() && !stopped.get()) {
-                                chrono.stop();
-                                elapsed.set((SystemClock.elapsedRealtime() - chrono.getBase()) / 1000);
-                                running.set(false);
-                                stopped.set(true);
-                                startButton.setImageResource(android.R.drawable.ic_media_rew);
-                            } else {
-                                elapsed.set(0);
-                                chrono.setBase(SystemClock.elapsedRealtime());
-                                stopped.set(false);
-                                startButton.setImageResource(android.R.drawable.ic_media_play);
-                            }
-                        }
-                    });
-
-                    final ImageButton setChronoButton = (ImageButton)view.findViewById(R.id.set_chrono_value);
-                    setChronoButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-
-                            View picker = NewWorkoutActivity.this.getLayoutInflater().inflate(R.layout.duration_picker, null);
-                            final NumberPicker hrsPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_hr);
-                            hrsPicker.setMinValue(0);
-                            hrsPicker.setMaxValue(100);
-                            hrsPicker.setWrapSelectorWheel(false);
-                            hrsPicker.setValue((int)elapsed.get() / 60 / 60);
-                            final NumberPicker minPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_min);
-                            minPicker.setMinValue(0);
-                            minPicker.setMaxValue(60);
-                            minPicker.setValue((int)elapsed.get() / 60 % 60);
-                            minPicker.setWrapSelectorWheel(true);
-                            minPicker.setFormatter(twoDigitFormatter);
-                            final NumberPicker secPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_sec);
-                            secPicker.setMinValue(0);
-                            secPicker.setMaxValue(60);
-                            secPicker.setValue((int)elapsed.get() % 60);
-                            secPicker.setWrapSelectorWheel(true);
-                            secPicker.setFormatter(twoDigitFormatter);
-
-                            new AlertDialog.Builder(NewWorkoutActivity.this)
-                                    .setTitle(getString(R.string.enter_duration))
-                                    .setView(picker)
-                                    .setPositiveButton(getString(R.string.btn_set), new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int whichButton) {
-                                            exerciseListView.expandGroup(groupPosition);
-                                            elapsed.set(((hrsPicker.getValue() * 60) + minPicker.getValue()) * 60 + secPicker.getValue());
-                                            running.set(false);
-                                            stopped.set(true);
-                                            startButton.setImageResource(android.R.drawable.ic_media_rew);
-                                            chrono.stop();
-                                            chrono.setBase(SystemClock.elapsedRealtime() - elapsed.get() * 1000);
-                                        }
-                                    })
-                                    .setNegativeButton(getString(R.string.btn_cancel), null)
-                                    .show();
-                        }
-                    });
-
-                    ArrayList<HashMap<String, Object>> currentSets = sets.get(groupPosition);
-                    if (!currentSets.isEmpty()) {
-                        int lastSetCount = Integer.valueOf(currentSets.get(currentSets.size() - 1).get("count").toString());
-                        numberPicker.setValue(lastSetCount);
-                    }
-
-                    new AlertDialog.Builder(NewWorkoutActivity.this)
-                            .setTitle(getString(R.string.add_set))
-                            .setView(view)
-                            .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
-                                    numberPicker.clearFocus();
-                                    Integer count = numberPicker.getValue();
-                                    exerciseListView.expandGroup(groupPosition);
-                                    addSet(groupPosition, count, (int)elapsed.get());
-                                }
-                            })
-                            .setNegativeButton(getString(R.string.btn_cancel), null)
-                            .show();
-                }
-            });
-            return view;
-        }
-
-        private HashMap<String, Object> newExercise(String name) {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put(EXERCISE_NAME, name);
-            return map;
-        }
-
-        private String formatElapsed(int seconds) {
-            StringBuilder sb = new StringBuilder(8);
-            sb.append(twoDigitFormatter.format(seconds / 60 / 60));
-            sb.append(':');
-            sb.append(twoDigitFormatter.format(seconds / 60 % 60));
-            sb.append(':');
-            sb.append(twoDigitFormatter.format(seconds % 60));
-            return sb.toString();
-        }
-
-        private HashMap<String, Object> newSet(Integer count, Integer elapsed) {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put(SET_COUNT, String.valueOf(count));
-            if (elapsed > 0) {
-                map.put(SET_DURATION, formatElapsed(elapsed));
-            } else {
-                map.put(SET_DURATION, "");
-            }
-            return map;
-        }
     }
 
     @Override
@@ -440,7 +265,7 @@ public class NewWorkoutActivity extends Activity {
                     try {
                         startActivityForResult((Intent)future.getResult().get(AccountManager.KEY_INTENT), ADD_ACCOUNT_REQUEST);
                     } catch (Exception e) {
-                        errorDialog(getString(R.string.failed_to_request_account));
+                        Utils.errorDialog(getApplicationContext(), getString(R.string.failed_to_request_account));
                     }
                 }
             }, null);
@@ -477,7 +302,7 @@ public class NewWorkoutActivity extends Activity {
                 final AccountManager am = AccountManager.get(getApplicationContext());
                 Account[] as = am.getAccountsByType(getString(R.string.account_type));
                 if (as.length == 0) {
-                    errorDialog(getString(R.string.account_was_not_added));
+                    Utils.errorDialog(getApplicationContext(), getString(R.string.account_was_not_added));
                 } else {
                     startUpload(as[0]);
                 }
@@ -486,7 +311,7 @@ public class NewWorkoutActivity extends Activity {
                 if (message == null) {
                     message = getString(R.string.auth_failed);
                 }
-                errorDialog(message);
+                Utils.errorDialog(getApplicationContext(), message);
             }
         } else if (requestCode == EDIT_EXERCISES_REQUEST) {
             if (resultCode == RESULT_OK) {
@@ -571,7 +396,7 @@ public class NewWorkoutActivity extends Activity {
                     token = future.getResult().getString(AccountManager.KEY_AUTHTOKEN);
                 } catch (Exception e) {
                     Log.e(LOG_TAG, "Failed to get account token: " + e.getMessage(), e);
-                    errorDialog(getString(R.string.failed_get_token));
+                    Utils.errorDialog(getApplicationContext(), getString(R.string.failed_get_token));
                     return;
                 }
                 progressDialog = new ProgressDialog(NewWorkoutActivity.this);
@@ -601,17 +426,17 @@ public class NewWorkoutActivity extends Activity {
                 String dateString = date.toString();
                 org.jstrava.entities.activity.Activity a = strava.createActivity(title, "Workout", dateString, 1, description, 0);
                 if (a == null) {
-                    return new Failure<Integer>(new ExecutionException(getString(R.string.upload_failed_msg), null));
+                    return new Utils.Failure<Integer>(new ExecutionException(getString(R.string.upload_failed_msg), null));
                 } else {
                     if (isPrivate) {
                         HashMap<String, Object> activityParams = new HashMap<String, Object>();
                         activityParams.put("private", "1");
                         strava.updateActivity(a.getId(), activityParams);
                     }
-                    return new Success<Integer>(a.getId());
+                    return new Utils.Success<Integer>(a.getId());
                 }
             } catch (Exception t) {
-                return new Failure<Integer>(new ExecutionException(getString(R.string.upload_unexpected_error), t));
+                return new Utils.Failure<Integer>(new ExecutionException(getString(R.string.upload_unexpected_error), t));
             }
         }
 
@@ -645,62 +470,115 @@ public class NewWorkoutActivity extends Activity {
         }
     }
 
-    abstract class CompletedFuture<T> implements Future<T> {
-        @Override
-        public boolean cancel(boolean mayInterruptIfRunning) {
-            return false;
+    class OnAddClickListener implements View.OnClickListener {
+        private ExercisesAdapter exercisesAdapter;
+        private final int groupPosition;
+
+        public OnAddClickListener(ExercisesAdapter exercisesAdapter, int groupPosition) {
+            this.exercisesAdapter = exercisesAdapter;
+            this.groupPosition = groupPosition;
         }
 
         @Override
-        public boolean isCancelled() {
-            return false;
-        }
+        public void onClick(View v) {
+            View view = NewWorkoutActivity.this.getLayoutInflater().inflate(R.layout.add_set_dialog, null);
+            final NumberPicker numberPicker = (NumberPicker)view.findViewById(R.id.set_count_picker);
+            numberPicker.setMinValue(0);
+            numberPicker.setMaxValue(Integer.MAX_VALUE);
+            numberPicker.setWrapSelectorWheel(false);
 
-        @Override
-        public boolean isDone() {
-            return true;
-        }
+            final Chronometer chrono = (Chronometer)view.findViewById(R.id.set_chrono);
+            final AtomicLong elapsed = new AtomicLong(0);
+            final AtomicBoolean running = new AtomicBoolean(false);
+            final AtomicBoolean stopped = new AtomicBoolean(false);
 
-        @Override
-        public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-            return get();
+            final ImageButton startButton = (ImageButton)view.findViewById(R.id.set_chrono_start);
+            startButton.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if (!running.get() && !stopped.get()) {
+                        chrono.setBase(SystemClock.elapsedRealtime());
+                        chrono.start();
+                        running.set(true);
+                        startButton.setImageResource(android.R.drawable.ic_media_pause);
+                    } else if (running.get() && !stopped.get()) {
+                        chrono.stop();
+                        elapsed.set((SystemClock.elapsedRealtime() - chrono.getBase()) / 1000);
+                        running.set(false);
+                        stopped.set(true);
+                        startButton.setImageResource(android.R.drawable.ic_media_rew);
+                    } else {
+                        elapsed.set(0);
+                        chrono.setBase(SystemClock.elapsedRealtime());
+                        stopped.set(false);
+                        startButton.setImageResource(android.R.drawable.ic_media_play);
+                    }
+                }
+            });
+
+            final ImageButton setChronoButton = (ImageButton)view.findViewById(R.id.set_chrono_value);
+            setChronoButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    View picker = NewWorkoutActivity.this.getLayoutInflater().inflate(R.layout.duration_picker, null);
+                    final NumberPicker hrsPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_hr);
+                    hrsPicker.setMinValue(0);
+                    hrsPicker.setMaxValue(100);
+                    hrsPicker.setWrapSelectorWheel(false);
+                    hrsPicker.setValue((int)elapsed.get() / 60 / 60);
+                    final NumberPicker minPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_min);
+                    minPicker.setMinValue(0);
+                    minPicker.setMaxValue(60);
+                    minPicker.setValue((int)elapsed.get() / 60 % 60);
+                    minPicker.setWrapSelectorWheel(true);
+                    minPicker.setFormatter(twoDigitFormatter);
+                    final NumberPicker secPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_sec);
+                    secPicker.setMinValue(0);
+                    secPicker.setMaxValue(60);
+                    secPicker.setValue((int)elapsed.get() % 60);
+                    secPicker.setWrapSelectorWheel(true);
+                    secPicker.setFormatter(twoDigitFormatter);
+
+                    new AlertDialog.Builder(NewWorkoutActivity.this)
+                            .setTitle(getString(R.string.enter_duration))
+                            .setView(picker)
+                            .setPositiveButton(getString(R.string.btn_set), new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    exerciseListView.expandGroup(groupPosition);
+                                    elapsed.set(((hrsPicker.getValue() * 60) + minPicker.getValue()) * 60 + secPicker.getValue());
+                                    running.set(false);
+                                    stopped.set(true);
+                                    startButton.setImageResource(android.R.drawable.ic_media_rew);
+                                    chrono.stop();
+                                    chrono.setBase(SystemClock.elapsedRealtime() - elapsed.get() * 1000);
+                                }
+                            })
+                            .setNegativeButton(getString(R.string.btn_cancel), null)
+                            .show();
+                }
+            });
+
+            ArrayList<HashMap<String, Object>> currentSets = exercisesAdapter.getSets().get(groupPosition);
+            if (!currentSets.isEmpty()) {
+                int lastSetCount = Integer.valueOf(currentSets.get(currentSets.size() - 1).get("count").toString());
+                numberPicker.setValue(lastSetCount);
+            }
+
+            new AlertDialog.Builder(NewWorkoutActivity.this)
+                    .setTitle(getString(R.string.add_set))
+                    .setView(view)
+                    .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            numberPicker.clearFocus();
+                            Integer count = numberPicker.getValue();
+                            exerciseListView.expandGroup(groupPosition);
+                            exercisesAdapter.addSet(groupPosition, count, (int) elapsed.get());
+                        }
+                    })
+                    .setNegativeButton(getString(R.string.btn_cancel), null)
+                    .show();
         }
     }
-
-    class Success<T> extends CompletedFuture<T> {
-        T value;
-
-        Success(T value) { this.value = value; }
-
-        @Override
-        public T get() throws InterruptedException, ExecutionException { return this.value; }
-    }
-
-    class Failure<T> extends CompletedFuture<T> {
-        ExecutionException e;
-        Failure(ExecutionException e) { this.e = e; }
-        @Override
-        public T get() throws InterruptedException, ExecutionException { throw e; }
-    }
-
-    // why standard is not visible by compiler?
-    final NumberPicker.Formatter twoDigitFormatter = new NumberPicker.Formatter() {
-        final StringBuilder mBuilder = new StringBuilder();
-        final java.util.Formatter mFmt = new java.util.Formatter(mBuilder, java.util.Locale.US);
-        final Object[] mArgs = new Object[1];
-        public String format(int value) {
-            mArgs[0] = value;
-            mBuilder.delete(0, mBuilder.length());
-            mFmt.format("%02d", mArgs);
-            return mFmt.toString();
-        }
-    };
-
-    private void errorDialog(String message) {
-        new AlertDialog.Builder(this)
-                .setMessage(message)
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
-    }
-
 }

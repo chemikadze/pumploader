@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout
+<LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:columnCount="2">
 
 
-        <TableRow>
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:minHeight="?android:attr/listPreferredItemHeight"
+                android:gravity="center_vertical">
 
                 <TextView
                         android:id="@+id/exercise_name"
@@ -17,23 +23,35 @@
                         android:paddingLeft="?android:attr/expandableListPreferredItemPaddingLeft"
                         android:text="example text"
                         android:textColor="@android:color/primary_text_light"
-                        android:minHeight="?android:attr/listPreferredItemHeight"
-                        android:singleLine="false"
-                        android:layout_weight="1">
+                        android:singleLine="true">
                 </TextView>
 
-                <Button
-                        android:id="@+id/add_set"
+                <TextView
+                        android:id="@+id/exercise_comment"
                         android:layout_width="wrap_content"
-                        android:text="@string/btn_add_set"
-                        android:layout_weight="0"
-                        android:layout_marginRight="20dp"
-                        android:focusable="false"
-                        android:textColor="?android:attr/textColorPrimary"
-                        />
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:text="total 42 times, 00:00:00"
+                        android:textColor="@android:color/primary_text_light"
+                        android:singleLine="true">
+                </TextView>
+
+        </LinearLayout>
+
+        <Button
+                android:id="@+id/add_set"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_add_set"
+                android:layout_weight="0"
+                android:layout_marginRight="20dp"
+                android:focusable="false"
+                android:textColor="?android:attr/textColorPrimary"
+                android:layout_gravity="center_vertical"
+                />
 
 
-        </TableRow>
-
-</TableLayout>
+</LinearLayout>
 
