@@ -23,6 +23,16 @@ public class Utils {
         }
     };
 
+    static String formatElapsed(int seconds) {
+        StringBuilder sb = new StringBuilder(8);
+        sb.append(twoDigitFormatter.format(seconds / 60 / 60));
+        sb.append(':');
+        sb.append(twoDigitFormatter.format(seconds / 60 % 60));
+        sb.append(':');
+        sb.append(twoDigitFormatter.format(seconds % 60));
+        return sb.toString();
+    }
+
     static void errorDialog(Context context, String message) {
         new AlertDialog.Builder(context)
                 .setMessage(message)

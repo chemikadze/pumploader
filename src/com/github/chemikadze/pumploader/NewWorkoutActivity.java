@@ -16,6 +16,8 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.*;
 import android.widget.*;
+import com.github.chemikadze.pumploader.model.Exercise;
+import com.github.chemikadze.pumploader.model.ExerciseSet;
 import org.jstrava.connector.JStrava;
 import org.jstrava.connector.JStravaV3;
 
@@ -30,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.github.chemikadze.pumploader.ExercisesAdapter.*;
+import static com.github.chemikadze.pumploader.Utils.formatElapsed;
 import static com.github.chemikadze.pumploader.Utils.twoDigitFormatter;
 
 public class NewWorkoutActivity extends Activity {
@@ -86,32 +89,21 @@ public class NewWorkoutActivity extends Activity {
         });
         exerciseListView.addFooterView(footer, null, false);
 
-        ArrayList<HashMap<String, Object>> exercises;
+        ArrayList<Exercise> exercises;
         Object savedExercises = null;
         if (savedInstanceState != null) {
             savedExercises = savedInstanceState.getSerializable(STATE_EXERCISE_DATA);
         }
         if (savedExercises == null) {
-            exercises = new ArrayList<HashMap<String, Object>>();
+            exercises = new ArrayList<Exercise>();
         } else {
-            exercises = (ArrayList<HashMap<String, Object>>)savedExercises;
-        }
-
-        ArrayList<ArrayList<HashMap<String, Object>>> sets;
-        Object savedSets = null;
-        if (savedInstanceState != null) {
-            savedSets = savedInstanceState.getSerializable(STATE_SETS_DATA);
-        }
-        if (savedSets == null) {
-            sets = new ArrayList<ArrayList<HashMap<String, Object>>>();
-        } else {
-            sets = (ArrayList<ArrayList<HashMap<String, Object>>>)savedSets;
+            exercises = (ArrayList<Exercise>)savedExercises;
         }
 
         exerciseAdapter = new ExercisesAdapter(
                 getApplicationContext(),
                 exercises, R.layout.exercise_item,
-                sets, R.layout.set_item);
+                R.layout.set_item);
         exerciseAdapter.setOnAddClickListenerFactory(new Utils.Function1<Integer, View.OnClickListener>() {
             @Override
             View.OnClickListener apply(Integer argument) {
@@ -177,7 +169,6 @@ public class NewWorkoutActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putSerializable(STATE_EXERCISE_DATA, exerciseAdapter.getExercises());
-        outState.putSerializable(STATE_SETS_DATA, exerciseAdapter.getSets());
 
         TabHost tabHost = (TabHost)findViewById(R.id.tab_host_input_type);
         outState.putString(STATE_TAB, tabHost.getCurrentTabTag());
@@ -329,20 +320,20 @@ public class NewWorkoutActivity extends Activity {
         for (int i = 0; i < exerciseAdapter.getExercises().size(); ++i) {
             text.append(i + 1);
             text.append(". ");
-            text.append(exerciseAdapter.getExercises().get(i).get(EXERCISE_NAME));
+            text.append(exerciseAdapter.getExercises().get(i).getName());
             text.append("\n");
 
-            ArrayList<HashMap<String, Object>> currentSets = exerciseAdapter.getSets().get(i);
+            ArrayList<ExerciseSet> currentSets = exerciseAdapter.getExercises().get(i).getSets();
 
             for (int j = 0; j < currentSets.size(); ++j) {
                 text.append(j + 1);
                 text.append(") ");
-                text.append(currentSets.get(j).get(SET_COUNT));
+                text.append(currentSets.get(j).getCount());
                 text.append(" times");
-                String elapsed = currentSets.get(j).get(SET_DURATION).toString();
-                if (!elapsed.isEmpty()) {
+                int elapsed = currentSets.get(j).getDuration();
+                if (elapsed > 0) {
                     text.append(", ");
-                    text.append(currentSets.get(j).get(SET_DURATION));
+                    text.append(formatElapsed(currentSets.get(j).getDuration()));
                     text.append(" elapsed");
                 }
                 text.append("\n");
@@ -560,9 +551,9 @@ public class NewWorkoutActivity extends Activity {
                 }
             });
 
-            ArrayList<HashMap<String, Object>> currentSets = exercisesAdapter.getSets().get(groupPosition);
+            ArrayList<ExerciseSet> currentSets = exercisesAdapter.getExercises().get(groupPosition).getSets();
             if (!currentSets.isEmpty()) {
-                int lastSetCount = Integer.valueOf(currentSets.get(currentSets.size() - 1).get("count").toString());
+                int lastSetCount = currentSets.get(currentSets.size() - 1).getCount();
                 numberPicker.setValue(lastSetCount);
             }
 

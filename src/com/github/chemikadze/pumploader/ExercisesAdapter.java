@@ -1,68 +1,61 @@
 package com.github.chemikadze.pumploader;
 
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
-import android.widget.SimpleExpandableListAdapter;
+import android.widget.TextView;
+import com.github.chemikadze.pumploader.model.Exercise;
+import com.github.chemikadze.pumploader.model.ExerciseSet;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import static com.github.chemikadze.pumploader.Utils.twoDigitFormatter;
+import static com.github.chemikadze.pumploader.Utils.formatElapsed;
 
-class ExercisesAdapter extends SimpleExpandableListAdapter {
+class ExercisesAdapter extends BaseExpandableListAdapter {
 
-    public static final String SET_DURATION = "duration";
-    public static final String SET_COUNT = "count";
-    public static final String EXERCISE_NAME = "name";
-    public static final String EXERCISE_COMMENT = "comment";
+    private final Context context;
+    private final LayoutInflater inflater;
 
-    private final static String[] exerciseAttrKeys = new String[] { EXERCISE_NAME, EXERCISE_COMMENT };
-    private final static int[] exerciseAttrVals = new int[] { R.id.exercise_name, R.id.exercise_comment };
+    private final int groupResource;
+    private final int childResource;
 
-    private final static String[] setAttrKeys = new String[] { SET_COUNT, SET_DURATION };
-    private final static int[] setAttrVals = new int[] { R.id.exercise_name, R.id.exercise_duration };
-
-
-    private ArrayList<HashMap<String, Object>> exercises;
-    private ArrayList<ArrayList<HashMap<String, Object>>> sets;
+    private ArrayList<Exercise> exercises;
 
     private Utils.Function1<Integer, View.OnClickListener> onAddClickListenerFactory;
 
-    public ExercisesAdapter(Context context, ArrayList<HashMap<String, Object>> groupData, int groupLayout, ArrayList<ArrayList<HashMap<String, Object>>> childData, int childLayout) {
-        super(context, groupData, groupLayout, exerciseAttrKeys, exerciseAttrVals, childData, childLayout, setAttrKeys, setAttrVals);
+    public ExercisesAdapter(Context context, ArrayList<Exercise> groupData, int groupLayout, int childLayout) {
+        super();
+        this.context = context;
+        this.inflater = (LayoutInflater)this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.exercises = groupData;
-        this.sets = childData;
+        this.groupResource = groupLayout;
+        this.childResource = childLayout;
     }
 
-    public ArrayList<HashMap<String, Object>> getExercises() {
+    public ArrayList<Exercise> getExercises() {
         return exercises;
-    }
-
-    public ArrayList<ArrayList<HashMap<String, Object>>> getSets() {
-        return sets;
     }
 
     public void removeExercise(int id) {
         exercises.remove(id);
-        sets.remove(id);
         notifyDataSetChanged();
     }
 
     public void addExercise(String description) {
         exercises.add(newExercise(description));
-        sets.add(new ArrayList<HashMap<String, Object>>());
         notifyDataSetChanged();
     }
 
     public void removeSet(int exerciseId, int setId) {
-        sets.get(exerciseId).remove(setId);
+        exercises.get(exerciseId).getSets().remove(setId);
         notifyDataSetChanged();
     }
 
     public void addSet(int exerciseId, int count, int elapsed) {
-        sets.get(exerciseId).add(newSet(count, elapsed));
+        exercises.get(exerciseId).getSets().add(newSet(count, elapsed));
         notifyDataSetChanged();
     }
 
@@ -72,40 +65,116 @@ class ExercisesAdapter extends SimpleExpandableListAdapter {
 
     @Override
     public View getGroupView(final int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-        View view = super.getGroupView(groupPosition, isExpanded, convertView, parent);
+        View view;
+        if (convertView == null) {
+            view = inflater.inflate(groupResource, null);
+        } else {
+            view = convertView;
+        }
+
+        TextView title = (TextView)view.findViewById(R.id.exercise_name);
+        title.setText(exercises.get(groupPosition).getName());
+
         Button addButton = (Button)view.findViewById(R.id.add_set);
         addButton.setOnClickListener(onAddClickListenerFactory.apply(groupPosition));
-        if (!exercises.get(groupPosition).containsKey(EXERCISE_COMMENT)) {
-            view.findViewById(R.id.exercise_comment).setVisibility(View.GONE);
+
+        TextView commentView = (TextView)view.findViewById(R.id.exercise_comment);
+        if (!exercises.get(groupPosition).getSets().isEmpty()) {
+            ArrayList<ExerciseSet> sets = exercises.get(groupPosition).getSets();
+            int totalCount = 0;
+            int totalDuration = 0;
+            for (int i = 0; i < sets.size(); i++) {
+                totalCount += sets.get(i).getCount();
+                totalDuration += sets.get(i).getDuration();
+            }
+
+            StringBuilder comment = new StringBuilder();
+            comment.append("Total ");
+            comment.append(totalCount);
+            comment.append(" times");
+            if (totalDuration > 0) {
+                comment.append(", ");
+                comment.append(formatElapsed(totalDuration));
+                comment.append(" elapsed");
+            }
+            commentView.setText(comment);
+            commentView.setVisibility(View.VISIBLE);
+        } else {
+            commentView.setVisibility(View.GONE);
         }
+
         return view;
     }
 
-    private HashMap<String, Object> newExercise(String name) {
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put(EXERCISE_NAME, name);
-        return map;
+    private Exercise newExercise(String name) {
+        return new Exercise(name, new ArrayList<ExerciseSet>());
     }
 
-    private String formatElapsed(int seconds) {
-        StringBuilder sb = new StringBuilder(8);
-        sb.append(twoDigitFormatter.format(seconds / 60 / 60));
-        sb.append(':');
-        sb.append(twoDigitFormatter.format(seconds / 60 % 60));
-        sb.append(':');
-        sb.append(twoDigitFormatter.format(seconds % 60));
-        return sb.toString();
+    private ExerciseSet newSet(Integer count, Integer elapsed) {
+        return new ExerciseSet(count, elapsed);
     }
 
-    private HashMap<String, Object> newSet(Integer count, Integer elapsed) {
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put(SET_COUNT, String.valueOf(count));
-        if (elapsed > 0) {
-            map.put(SET_DURATION, formatElapsed(elapsed));
+    @Override
+    public int getGroupCount() {
+        return exercises.size();
+    }
+
+    @Override
+    public int getChildrenCount(int groupPosition) {
+        return exercises.get(groupPosition).getSets().size();
+    }
+
+    @Override
+    public Object getGroup(int groupPosition) {
+        return exercises.get(groupPosition);
+    }
+
+    @Override
+    public Object getChild(int groupPosition, int childPosition) {
+        return exercises.get(groupPosition).getSets().get(childPosition);
+    }
+
+    @Override
+    public long getGroupId(int groupPosition) {
+        return groupPosition;
+    }
+
+    @Override
+    public long getChildId(int groupPosition, int childPosition) {
+        return childPosition;
+    }
+
+    @Override
+    public boolean hasStableIds() {
+        return true;
+    }
+
+    @Override
+    public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+        View view;
+        if (convertView == null) {
+            view = inflater.inflate(childResource, null);
         } else {
-            map.put(SET_DURATION, "");
+            view = convertView;
         }
-        return map;
+
+        TextView title = (TextView)view.findViewById(R.id.exercise_name);
+        title.setText(String.valueOf(exercises.get(groupPosition).getSets().get(childPosition).getCount()));
+
+        TextView time = (TextView)view.findViewById(R.id.exercise_duration);
+        int duration = exercises.get(groupPosition).getSets().get(childPosition).getDuration();
+        if (duration > 0) {
+            time.setText(formatElapsed(duration));
+        } else {
+            time.setText("");
+        }
+
+        return view;
+    }
+
+    @Override
+    public boolean isChildSelectable(int groupPosition, int childPosition) {
+        return true;
     }
 
 }
