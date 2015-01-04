@@ -374,6 +374,8 @@ public class NewWorkoutActivity extends Activity {
             description.append("\n\n");
         }
         description.append(constructorText);
+        description.append("\n\n");
+        description.append(getString(R.string.export_signature));
 
         int totalElapsed = 0;
         for (int i = 0; i < exerciseAdapter.getExercises().size(); i++) {
