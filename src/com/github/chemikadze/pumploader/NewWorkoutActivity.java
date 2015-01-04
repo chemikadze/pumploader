@@ -61,6 +61,7 @@ public class NewWorkoutActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.new_workout_activity);
+        setTitle(R.string.new_activity_title);
 
         TabHost tabHost = (TabHost)findViewById(R.id.tab_host_input_type);
         tabHost.setup();
