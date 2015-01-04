@@ -374,10 +374,15 @@ public class NewWorkoutActivity extends Activity {
         }
         description.append(constructorText);
 
-        uploadWorkout(account, title, description.toString(), isPrivate);
+        int totalElapsed = 0;
+        for (int i = 0; i < exerciseAdapter.getExercises().size(); i++) {
+            totalElapsed += Utils.totalElapsed(exerciseAdapter.getExercises().get(i).getSets());
+        }
+
+        uploadWorkout(account, title, description.toString(), totalElapsed, isPrivate);
     }
 
-    private void uploadWorkout(Account account, final String title, final String description, final Boolean isPrivate) {
+    private void uploadWorkout(Account account, final String title, final String description, final int totalElapsed, final Boolean isPrivate) {
         AccountManager am = AccountManager.get(getApplicationContext());
         am.getAuthToken(account, getString(R.string.account_type), null, null, new AccountManagerCallback<Bundle>() {
             @Override
@@ -394,28 +399,34 @@ public class NewWorkoutActivity extends Activity {
                 progressDialog.setTitle(R.string.upload_dialog_title);
                 progressDialog.setMessage(description);
                 progressDialog.show();
-                new UploadActivityTask().execute(token, title, description, isPrivate.toString());
+                new UploadActivityTask().execute(token, title, description, String.valueOf(totalElapsed), isPrivate.toString());
             }
         }, null);
     }
 
     class UploadActivityTask extends AsyncTask<String, String, Future<Integer>> {
+        private String[] savedParams;
         private String token;
         private String title;
         private String description;
+        private int totalElapsed;
         private Boolean isPrivate;
 
         @Override
         protected Future<Integer> doInBackground(String... params) {
-            token = params[0];
-            title = params[1];
-            description = params[2];
-            isPrivate = Boolean.valueOf(params[3]);
             try {
+                savedParams = params;
+                token = params[0];
+                title = params[1];
+                description = params[2];
+                totalElapsed = Integer.valueOf(params[3]);
+                isPrivate = Boolean.valueOf(params[4]);
+
                 JStrava strava = new JStravaV3(token);
-                Date date = new Date();
+                Date date = new Date((new Date().getTime() / 1000 - totalElapsed) * 1000);
                 String dateString = date.toString();
-                org.jstrava.entities.activity.Activity a = strava.createActivity(title, "Workout", dateString, 1, description, 0);
+                org.jstrava.entities.activity.Activity a =
+                        strava.createActivity(title, "Workout", dateString, totalElapsed, description, 0);
                 if (a == null) {
                     return new Utils.Failure<Integer>(new ExecutionException(getString(R.string.upload_failed_msg), null));
                 } else {
@@ -452,7 +463,7 @@ public class NewWorkoutActivity extends Activity {
                         .setPositiveButton(R.string.btn_retry, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                new UploadActivityTask().execute(token, title, description, isPrivate.toString());
+                                new UploadActivityTask().execute(savedParams);
                             }
                         })
                         .setNegativeButton(R.string.btn_cancel, null)
