@@ -24,6 +24,9 @@ public class EditExerciseTypes extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_exercise_types);
+        if (getActionBar() != null) {
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         View footer = getLayoutInflater().inflate(R.layout.add_exercise_type, null);
         footer.setOnClickListener(new View.OnClickListener() {
