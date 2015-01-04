@@ -49,6 +49,6 @@
     <string name="btn_remove">Remove</string>
     <string name="new_activity_title">New activity</string>
     <string name="exercise_types_title">Exercises</string>
-    <string name="exercise_comment_fmt">Total %s times</string>
+    <string name="exercise_comment_fmt">%s total</string>
     <string name="exercise_comment_elapsed_fmt">%s elapsed</string>
 </resources>
