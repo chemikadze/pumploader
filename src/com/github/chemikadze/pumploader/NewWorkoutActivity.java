@@ -533,13 +533,13 @@ public class NewWorkoutActivity extends Activity {
                     hrsPicker.setValue((int)elapsed.get() / 60 / 60);
                     final NumberPicker minPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_min);
                     minPicker.setMinValue(0);
-                    minPicker.setMaxValue(60);
+                    minPicker.setMaxValue(59);
                     minPicker.setValue((int)elapsed.get() / 60 % 60);
                     minPicker.setWrapSelectorWheel(true);
                     minPicker.setFormatter(twoDigitFormatter);
                     final NumberPicker secPicker = (NumberPicker)picker.findViewById(R.id.duration_picker_sec);
                     secPicker.setMinValue(0);
-                    secPicker.setMaxValue(60);
+                    secPicker.setMaxValue(59);
                     secPicker.setValue((int)elapsed.get() % 60);
                     secPicker.setWrapSelectorWheel(true);
                     secPicker.setFormatter(twoDigitFormatter);
