@@ -3,6 +3,7 @@ package com.github.chemikadze.pumploader;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.widget.NumberPicker;
+import android.widget.Toast;
 import com.github.chemikadze.pumploader.model.ExerciseSet;
 
 import java.util.List;
@@ -40,6 +41,10 @@ public class Utils {
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
+    }
+
+    static void errorToast(Context context, String message) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 
     static int totalElapsed(List<ExerciseSet> set) {

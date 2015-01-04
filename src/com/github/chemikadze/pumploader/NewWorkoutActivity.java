@@ -292,7 +292,7 @@ public class NewWorkoutActivity extends Activity {
                 final AccountManager am = AccountManager.get(getApplicationContext());
                 Account[] as = am.getAccountsByType(getString(R.string.account_type));
                 if (as.length == 0) {
-                    Utils.errorDialog(getApplicationContext(), getString(R.string.account_was_not_added));
+                    Utils.errorToast(getApplicationContext(), getString(R.string.account_was_not_added));
                 } else {
                     startUpload(as[0]);
                 }
@@ -301,7 +301,7 @@ public class NewWorkoutActivity extends Activity {
                 if (message == null) {
                     message = getString(R.string.auth_failed);
                 }
-                Utils.errorDialog(getApplicationContext(), message);
+                Utils.errorToast(getApplicationContext(), message);
             }
         } else if (requestCode == EDIT_EXERCISES_REQUEST) {
             if (resultCode == RESULT_OK) {
@@ -374,23 +374,7 @@ public class NewWorkoutActivity extends Activity {
         }
         description.append(constructorText);
 
-        final AccountManager am = AccountManager.get(getApplicationContext());
-        Account[] as = am.getAccountsByType(getString(R.string.account_type));
-        if (as.length == 0) {
-            new AlertDialog.Builder(getApplicationContext())
-                    .setMessage("Account was not added, upload cancelled")
-                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            NewWorkoutActivity.this.setResult(RESULT_CANCELED);
-                            NewWorkoutActivity.this.finish();
-                        }
-                    })
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-        } else {
-            uploadWorkout(as[0], title, description.toString(), isPrivate);
-        }
+        uploadWorkout(account, title, description.toString(), isPrivate);
     }
 
     private void uploadWorkout(Account account, final String title, final String description, final Boolean isPrivate) {
