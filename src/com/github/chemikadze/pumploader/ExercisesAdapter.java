@@ -81,12 +81,8 @@ class ExercisesAdapter extends BaseExpandableListAdapter {
         TextView commentView = (TextView)view.findViewById(R.id.exercise_comment);
         if (!exercises.get(groupPosition).getSets().isEmpty()) {
             ArrayList<ExerciseSet> sets = exercises.get(groupPosition).getSets();
-            int totalCount = 0;
-            int totalDuration = 0;
-            for (int i = 0; i < sets.size(); i++) {
-                totalCount += sets.get(i).getCount();
-                totalDuration += sets.get(i).getDuration();
-            }
+            int totalCount = Utils.totalCount(sets);
+            int totalDuration = Utils.totalElapsed(sets);
 
             StringBuilder comment = new StringBuilder();
             String template = context.getResources().getString(R.string.exercise_comment_fmt);

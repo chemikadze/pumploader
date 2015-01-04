@@ -31,7 +31,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.github.chemikadze.pumploader.ExercisesAdapter.*;
 import static com.github.chemikadze.pumploader.Utils.formatElapsed;
 import static com.github.chemikadze.pumploader.Utils.twoDigitFormatter;
 
@@ -316,14 +315,31 @@ public class NewWorkoutActivity extends Activity {
     }
 
     private String getDescriptionFromConstructor() {
+        String totalFmt = getString(R.string.exercise_comment_fmt);
+        String totalElapsedFmt = getString(R.string.exercise_comment_elapsed_fmt);
         StringBuilder text = new StringBuilder();
         for (int i = 0; i < exerciseAdapter.getExercises().size(); ++i) {
+            Exercise exercise = exerciseAdapter.getExercises().get(i);
+
             text.append(i + 1);
             text.append(". ");
-            text.append(exerciseAdapter.getExercises().get(i).getName());
+            text.append(exercise.getName());
+
+            if (exercise.getSets().size() > 0) {
+                int totalCount = Utils.totalCount(exercise.getSets());
+                int totalElapsed = Utils.totalElapsed(exercise.getSets());
+                String totalElapsedStr = Utils.formatElapsed(totalElapsed);
+
+                text.append(". ");
+                text.append(String.format(totalFmt, totalCount));
+                if (totalElapsed > 0) {
+                    text.append(", ");
+                    text.append(String.format(totalElapsedFmt, totalElapsedStr));
+                }
+            }
             text.append("\n");
 
-            ArrayList<ExerciseSet> currentSets = exerciseAdapter.getExercises().get(i).getSets();
+            ArrayList<ExerciseSet> currentSets = exercise.getSets();
 
             for (int j = 0; j < currentSets.size(); ++j) {
                 text.append(j + 1);

@@ -3,7 +3,9 @@ package com.github.chemikadze.pumploader;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.widget.NumberPicker;
+import com.github.chemikadze.pumploader.model.ExerciseSet;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +40,22 @@ public class Utils {
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
+    }
+
+    static int totalElapsed(List<ExerciseSet> set) {
+        int acc = 0;
+        for (int i = 0; i < set.size(); i++) {
+            acc += set.get(i).getDuration();
+        }
+        return acc;
+    }
+
+    static int totalCount(List<ExerciseSet> set) {
+        int acc = 0;
+        for (int i = 0; i < set.size(); i++) {
+            acc += set.get(i).getCount();
+        }
+        return acc;
     }
 
     static abstract class CompletedFuture<T> implements Future<T> {
