@@ -1,6 +1,8 @@
 package com.github.chemikadze.pumploader.model;
 
-public final class ExerciseSet {
+import java.io.Serializable;
+
+public final class ExerciseSet implements Serializable {
 
     private int count;
     private int duration;

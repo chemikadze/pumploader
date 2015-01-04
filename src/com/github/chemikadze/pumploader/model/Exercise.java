@@ -1,8 +1,9 @@
 package com.github.chemikadze.pumploader.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Exercise {
+public final class Exercise implements Serializable {
 
     private String name;
     private ArrayList<ExerciseSet> sets;
