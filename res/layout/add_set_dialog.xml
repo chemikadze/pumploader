@@ -49,6 +49,7 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:src="@android:drawable/ic_media_play"
+                android:background="@android:drawable/btn_default"
                 android:layout_weight="0"
                 android:layout_gravity="center_vertical"
                 android:layout_marginRight="5dp"/>
@@ -58,6 +59,7 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:src="@drawable/ic_stopwatch"
+                android:background="@android:drawable/btn_default"
                 android:layout_weight="0"
                 android:layout_gravity="center_vertical"
                 android:layout_marginRight="5dp"/>
