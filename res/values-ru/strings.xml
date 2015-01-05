@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="account_type">com.github.chemikadze.pumploader</string>
+    <string name="app_name">PumpLoader</string>
+    <string name="share_name">Новая тренировка</string>
+    <string name="accountname">Логин</string>
+    <string name="accountpassword">Пароль</string>
+    <string name="newworkout">Новая тренировка</string>
+    <string name="workoutname">Название</string>
+    <string name="is_private">Приватная</string>
+    <string name="workoutdescription">Описание</string>
+    <string name="upload">Отправить</string>
+    <string name="new_workout_prefix">Тренировка</string>
+    <string name="tab_description">Описание</string>
+    <string name="tab_exersises">Упражнения</string>
+    <string name="add_exercise">Новое упражнение</string>
+    <string name="add_exercise_type">Новое упражнение</string>
+    <string name="add_set">Новый подход</string>
+    <string name="remove">Удалить</string>
+    <string name="btn_add">Добавить</string>
+    <string name="btn_add_set">Подход</string>
+    <string name="btn_cancel">Отмена</string>
+    <string name="btn_set">Изменить</string>
+    <string name="btn_save">Сохранить</string>
+    <string-array name="default_workout_types">
+        <item>Выпрыгивания</item>
+        <item>Подтягивания</item>
+        <item>Отжимания</item>
+    </string-array>
+    <string name="add_dialog_duration">Длительность</string>
+    <string name="add_dialog_count">Количество</string>
+    <string name="enter_duration">Ввод длительности</string>
+    <string name="upload_dialog_title">Загрузка тренировки</string>
+    <string name="upload_failed_title">Загрузка не удалась</string>
+    <string name="btn_retry">Повторить</string>
+    <string name="upload_failed_msg">Не удалось загрузить тренировку: проблема с сетью</string>
+    <string name="upload_unexpected_error">Не удалось загрузить тренировку: неизвестная проблема</string>
+    <string name="failed_get_token">Не удалось получить токен аккаунта</string>
+    <string name="failed_to_request_account">Не удалось создать аккаунт</string>
+    <string name="account_was_not_added">Аккаунт не добавлен, загрузка отменена</string>
+    <string name="login_unexpected_error">Неизвестная ошибка при попытке войти в аккаунт</string>
+    <string name="auth_failed">Аутентификация не удалась</string>
+    <string name="upload_succeeded">Тренировка успешно загружена</string>
+    <string name="remove_exercise_type">Удалить упражнение</string>
+    <string name="btn_remove">Удалить</string>
+    <string name="new_activity_title">Новая тренировка</string>
+    <string name="exercise_types_title">Упражнения</string>
+    <string name="exercise_count_total_fmt">%s раза</string>
+    <string name="exercise_elapsed_fmt">%s затрачено</string>
+    <string name="export_signature">Загружено при помощи PumpLoader для Android</string>
+    <string name="unnamed_athlete">Безымянный спортсмен №</string>
+    <string name="exercise_count_fmt">%s раз</string>
+</resources>

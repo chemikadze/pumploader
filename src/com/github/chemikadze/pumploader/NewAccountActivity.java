@@ -11,7 +11,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 import org.jstrava.authenticator.AuthResponse;
 import org.jstrava.authenticator.StravaAuthenticator;
 
@@ -23,15 +22,17 @@ public class NewAccountActivity extends AccountAuthenticatorActivity {
     private StravaAuthenticator authenticator;
 
     public static final String KEY_EXTRA_TOKEN_TYPE = "x-token-type";
-    public static final String REDIRECT_URL = "http://localhost";
+    public static final String REDIRECT_URL_PREFIX = "http://localhost";
     public static final String CLIENT_SECRET = "a530c014e7f44cb8feb8dfe7b51f1f4d177ed439";
+    public static final int CLIENT_ID = 3966;
+    public static final String REDIRECT_URL = "http://localhost/token_exchange.php";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         authenticator =
                 new StravaAuthenticator(
-                        getResources().getInteger(R.integer.auth_client_id),
-                        getString(R.string.auth_redirect_url),
+                        CLIENT_ID,
+                        REDIRECT_URL,
                         CLIENT_SECRET);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.new_account_activity);
@@ -43,7 +44,7 @@ public class NewAccountActivity extends AccountAuthenticatorActivity {
     class StravaAuthClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if (url.startsWith(REDIRECT_URL)) {
+            if (url.startsWith(REDIRECT_URL_PREFIX)) {
                 try {
                     Uri parsed = Uri.parse(url);
                     String authcode = parsed.getQueryParameter("code");

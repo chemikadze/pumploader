@@ -4,26 +4,6 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent">
 
-    <TextView android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="@string/accountname"/>
-    <!--<EditText android:id="@+id/login"-->
-            <!--android:layout_width="fill_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:inputType="textEmailAddress"/>-->
-
-    <!--<TextView android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="@string/accountpassword"/>-->
-    <!--<EditText android:id="@+id/password"-->
-            <!--android:layout_width="fill_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:inputType="textPassword"/>-->
-
-    <!--&lt;!&ndash;<LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="1"/>&ndash;&gt;-->
-
-    <!--<Button android:layout_width="fill_parent"-->
-            <!--android:layout_gravity="center"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="@string/submit"-->
-            <!--android:onClick="onButtonClicked"/>-->
-
     <WebView android:id="@+id/login_web_view"
              android:layout_width="fill_parent"
              android:layout_height="fill_parent">

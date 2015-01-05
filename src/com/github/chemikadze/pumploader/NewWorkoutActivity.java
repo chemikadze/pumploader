@@ -316,8 +316,9 @@ public class NewWorkoutActivity extends Activity {
     }
 
     private String getDescriptionFromConstructor() {
-        String totalFmt = getString(R.string.exercise_comment_fmt);
-        String totalElapsedFmt = getString(R.string.exercise_comment_elapsed_fmt);
+        String totalCountFmt = getString(R.string.exercise_count_total_fmt);
+        String countFmt = getString(R.string.exercise_count_fmt);
+        String elapsedFmt = getString(R.string.exercise_elapsed_fmt);
         StringBuilder text = new StringBuilder();
         for (int i = 0; i < exerciseAdapter.getExercises().size(); ++i) {
             Exercise exercise = exerciseAdapter.getExercises().get(i);
@@ -332,10 +333,10 @@ public class NewWorkoutActivity extends Activity {
                 String totalElapsedStr = Utils.formatElapsed(totalElapsed);
 
                 text.append(". ");
-                text.append(String.format(totalFmt, totalCount));
+                text.append(String.format(totalCountFmt, totalCount));
                 if (totalElapsed > 0) {
                     text.append(", ");
-                    text.append(String.format(totalElapsedFmt, totalElapsedStr));
+                    text.append(String.format(elapsedFmt, totalElapsedStr));
                 }
             }
             text.append("\n");
@@ -345,13 +346,11 @@ public class NewWorkoutActivity extends Activity {
             for (int j = 0; j < currentSets.size(); ++j) {
                 text.append(j + 1);
                 text.append(") ");
-                text.append(currentSets.get(j).getCount());
-                text.append(" times");
+                text.append(String.format(countFmt, currentSets.get(j).getCount()));
                 int elapsed = currentSets.get(j).getDuration();
                 if (elapsed > 0) {
                     text.append(", ");
-                    text.append(formatElapsed(currentSets.get(j).getDuration()));
-                    text.append(" elapsed");
+                    text.append(String.format(elapsedFmt, formatElapsed(currentSets.get(j).getDuration())));
                 }
                 text.append("\n");
             }
