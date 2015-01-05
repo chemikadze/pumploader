@@ -24,6 +24,7 @@ public class NewAccountActivity extends AccountAuthenticatorActivity {
 
     public static final String KEY_EXTRA_TOKEN_TYPE = "x-token-type";
     public static final String REDIRECT_URL = "http://localhost";
+    public static final String CLIENT_SECRET = "a530c014e7f44cb8feb8dfe7b51f1f4d177ed439";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -31,7 +32,7 @@ public class NewAccountActivity extends AccountAuthenticatorActivity {
                 new StravaAuthenticator(
                         getResources().getInteger(R.integer.auth_client_id),
                         getString(R.string.auth_redirect_url),
-                        getString(R.string.auth_client_secret));
+                        CLIENT_SECRET);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.new_account_activity);
         WebView wv = (WebView)findViewById(R.id.login_web_view);
