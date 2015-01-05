@@ -5,7 +5,6 @@
     <string name="share_name">New workout</string>
     <string name="accountname">Login</string>
     <string name="accountpassword">Password</string>
-    <string name="newworkout">New workout</string>
     <string name="workoutname">Workout name</string>
     <string name="is_private">Private</string>
     <string name="workoutdescription">Description</string>
@@ -46,7 +45,7 @@
     <string name="new_activity_title">New activity</string>
     <string name="exercise_types_title">Exercises</string>
     <string name="exercise_count_total_fmt">%s total</string>
-    <string name="exercise_elapsed_fmt">%s elapsed</string>
+    <string name="exercise_elapsed_fmt">, %s elapsed</string>
     <string name="export_signature">Uploaded with PumpLoader for android</string>
     <string name="unnamed_athlete">Unnamed athlete #</string>
     <string name="exercise_count_fmt">%s times</string>

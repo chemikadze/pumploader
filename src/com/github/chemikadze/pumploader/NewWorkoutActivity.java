@@ -335,7 +335,6 @@ public class NewWorkoutActivity extends Activity {
                 text.append(". ");
                 text.append(String.format(totalCountFmt, totalCount));
                 if (totalElapsed > 0) {
-                    text.append(", ");
                     text.append(String.format(elapsedFmt, totalElapsedStr));
                 }
             }
@@ -349,7 +348,6 @@ public class NewWorkoutActivity extends Activity {
                 text.append(String.format(countFmt, currentSets.get(j).getCount()));
                 int elapsed = currentSets.get(j).getDuration();
                 if (elapsed > 0) {
-                    text.append(", ");
                     text.append(String.format(elapsedFmt, formatElapsed(currentSets.get(j).getDuration())));
                 }
                 text.append("\n");

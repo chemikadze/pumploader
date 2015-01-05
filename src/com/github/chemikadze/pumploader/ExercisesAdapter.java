@@ -89,7 +89,6 @@ class ExercisesAdapter extends BaseExpandableListAdapter {
             comment.append(String.format(template, totalCount));
             if (totalDuration > 0) {
                 String elapsedTemplate = context.getResources().getString(R.string.exercise_elapsed_fmt);
-                comment.append(", ");
                 comment.append(String.format(elapsedTemplate, formatElapsed(totalDuration)));
             }
             commentView.setText(comment);
