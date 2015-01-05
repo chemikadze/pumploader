@@ -52,4 +52,5 @@
     <string name="exercise_comment_fmt">%s total</string>
     <string name="exercise_comment_elapsed_fmt">%s elapsed</string>
     <string name="export_signature">Uploaded with PumpLoader for android</string>
+    <string name="unnamed_athlete">Unnamed athlete #</string>
 </resources>

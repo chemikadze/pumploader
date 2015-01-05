@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -62,8 +63,14 @@ public class NewAccountActivity extends AccountAuthenticatorActivity {
                     final Intent res = new Intent();
                     try {
                         AuthResponse parsedResponse = authenticator.getToken(authcode);
-                        if (parsedResponse != null) {
-                            res.putExtra(AccountManager.KEY_ACCOUNT_NAME, parsedResponse.getAthlete().getFirstname());
+                        if (parsedResponse != null && parsedResponse.getAthlete() != null) {
+                            String name = parsedResponse.getAthlete().getFirstname();
+                            if (TextUtils.isEmpty(name)) {
+                                name = getApplicationContext().getString(R.string.unnamed_athlete) +
+                                        String.valueOf(parsedResponse.getAthlete().getId());
+                            };
+
+                            res.putExtra(AccountManager.KEY_ACCOUNT_NAME, name);
                             res.putExtra(AccountManager.KEY_ACCOUNT_TYPE, getString(R.string.account_type));
                             res.putExtra(AccountManager.KEY_AUTHTOKEN, parsedResponse.getAccess_token());
                         } else {
@@ -72,7 +79,6 @@ public class NewAccountActivity extends AccountAuthenticatorActivity {
                         }
                     } catch (Exception e) {
                         Log.e(LOG_TAG, e.getMessage(), e);
-                        setResult(RESULT_FIRST_USER);
                         res.putExtra(AccountManager.KEY_ERROR_MESSAGE, R.string.login_unexpected_error);
                     }
                     return res;
