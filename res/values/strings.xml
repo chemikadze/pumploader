@@ -44,9 +44,15 @@
     <string name="btn_remove">Remove</string>
     <string name="new_activity_title">New activity</string>
     <string name="exercise_types_title">Exercises</string>
-    <string name="exercise_count_total_fmt">%s total</string>
+    <plurals name="exercise_count_total_fmt">
+        <item quantity="other">%s total</item>
+    </plurals>
     <string name="exercise_elapsed_fmt">, %s elapsed</string>
     <string name="export_signature">Uploaded with PumpLoader for android</string>
     <string name="unnamed_athlete">Unnamed athlete #</string>
     <string name="exercise_count_fmt">%s times</string>
+    <plurals name="exercise_count_fmt">
+        <item quantity="one">%s time</item>
+        <item quantity="other">%s times</item>
+    </plurals>
 </resources>

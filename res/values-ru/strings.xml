@@ -44,9 +44,20 @@
     <string name="btn_remove">Удалить</string>
     <string name="new_activity_title">Тренировка</string>
     <string name="exercise_types_title">Упражнения</string>
-    <string name="exercise_count_total_fmt">%s раза</string>
+    <plurals name="exercise_count_total_fmt">
+        <item quantity="one">%s раз</item>
+        <item quantity="few">%s раза</item>
+        <item quantity="many">%s раза</item>
+        <item quantity="other">%s раза</item>
+    </plurals>
     <string name="exercise_elapsed_fmt">&#160;за %s</string>
     <string name="export_signature">Загружено при помощи PumpLoader для Android</string>
     <string name="unnamed_athlete">Безымянный спортсмен №</string>
     <string name="exercise_count_fmt">%s раз</string>
+    <plurals name="exercise_count_fmt">
+        <item quantity="one">%s раз</item>
+        <item quantity="few">%s раза</item>
+        <item quantity="many">%s раза</item>
+        <item quantity="other">%s раза</item>
+    </plurals>
 </resources>

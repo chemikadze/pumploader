@@ -85,8 +85,7 @@ class ExercisesAdapter extends BaseExpandableListAdapter {
             int totalDuration = Utils.totalElapsed(sets);
 
             StringBuilder comment = new StringBuilder();
-            String template = context.getResources().getString(R.string.exercise_count_total_fmt);
-            comment.append(String.format(template, totalCount));
+            comment.append(context.getResources().getQuantityString(R.plurals.exercise_count_total_fmt, totalCount, totalCount));
             if (totalDuration > 0) {
                 String elapsedTemplate = context.getResources().getString(R.string.exercise_elapsed_fmt);
                 comment.append(String.format(elapsedTemplate, formatElapsed(totalDuration)));

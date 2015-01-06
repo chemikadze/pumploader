@@ -316,8 +316,6 @@ public class NewWorkoutActivity extends Activity {
     }
 
     private String getDescriptionFromConstructor() {
-        String totalCountFmt = getString(R.string.exercise_count_total_fmt);
-        String countFmt = getString(R.string.exercise_count_fmt);
         String elapsedFmt = getString(R.string.exercise_elapsed_fmt);
         StringBuilder text = new StringBuilder();
         for (int i = 0; i < exerciseAdapter.getExercises().size(); ++i) {
@@ -333,7 +331,7 @@ public class NewWorkoutActivity extends Activity {
                 String totalElapsedStr = Utils.formatElapsed(totalElapsed);
 
                 text.append(". ");
-                text.append(String.format(totalCountFmt, totalCount));
+                text.append(getResources().getQuantityString(R.plurals.exercise_count_total_fmt, totalCount, totalCount));
                 if (totalElapsed > 0) {
                     text.append(String.format(elapsedFmt, totalElapsedStr));
                 }
@@ -343,10 +341,12 @@ public class NewWorkoutActivity extends Activity {
             ArrayList<ExerciseSet> currentSets = exercise.getSets();
 
             for (int j = 0; j < currentSets.size(); ++j) {
+                int count = currentSets.get(j).getCount();
+                int elapsed = currentSets.get(j).getDuration();
+
                 text.append(j + 1);
                 text.append(") ");
-                text.append(String.format(countFmt, currentSets.get(j).getCount()));
-                int elapsed = currentSets.get(j).getDuration();
+                text.append(getResources().getQuantityString(R.plurals.exercise_count_fmt, count, count));
                 if (elapsed > 0) {
                     text.append(String.format(elapsedFmt, formatElapsed(currentSets.get(j).getDuration())));
                 }
