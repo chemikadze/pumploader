@@ -47,8 +47,8 @@
     <plurals name="exercise_count_total_fmt">
         <item quantity="one">%s раз</item>
         <item quantity="few">%s раза</item>
-        <item quantity="many">%s раза</item>
-        <item quantity="other">%s раза</item>
+        <item quantity="many">%s раз</item>
+        <item quantity="other">%s раз</item>
     </plurals>
     <string name="exercise_elapsed_fmt">&#160;за %s</string>
     <string name="export_signature">Загружено при помощи PumpLoader для Android</string>
