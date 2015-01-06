@@ -395,33 +395,38 @@ public class NewWorkoutActivity extends Activity {
                     Utils.errorDialog(getApplicationContext(), getString(R.string.failed_get_token));
                     return;
                 }
-                progressDialog = new ProgressDialog(NewWorkoutActivity.this);
-                progressDialog.setTitle(R.string.upload_dialog_title);
-                progressDialog.setMessage(description);
-                progressDialog.show();
-                new UploadActivityTask().execute(token, title, description, String.valueOf(totalElapsed), isPrivate.toString());
+                new UploadActivityTask(token, title, description, totalElapsed, isPrivate).execute();
             }
         }, null);
     }
 
-    class UploadActivityTask extends AsyncTask<String, String, Future<Integer>> {
-        private String[] savedParams;
+    class UploadActivityTask extends AsyncTask<Void, Void, Future<Integer>> {
         private String token;
         private String title;
         private String description;
         private int totalElapsed;
         private Boolean isPrivate;
 
-        @Override
-        protected Future<Integer> doInBackground(String... params) {
-            try {
-                savedParams = params;
-                token = params[0];
-                title = params[1];
-                description = params[2];
-                totalElapsed = Integer.valueOf(params[3]);
-                isPrivate = Boolean.valueOf(params[4]);
+        public UploadActivityTask(String token, String title, String description, int totalElapsed, Boolean isPrivate) {
+            this.token = token;
+            this.title = title;
+            this.description = description;
+            this.totalElapsed = totalElapsed;
+            this.isPrivate = isPrivate;
+        }
 
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = new ProgressDialog(NewWorkoutActivity.this);
+            progressDialog.setTitle(R.string.upload_dialog_title);
+            progressDialog.setMessage(description);
+            progressDialog.show();
+        }
+
+        @Override
+        protected Future<Integer> doInBackground(Void... params) {
+            try {
                 JStrava strava = new JStravaV3(token);
                 Date date = new Date((new Date().getTime() / 1000 - totalElapsed) * 1000);
                 String dateString = date.toString();
@@ -463,7 +468,7 @@ public class NewWorkoutActivity extends Activity {
                         .setPositiveButton(R.string.btn_retry, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                new UploadActivityTask().execute(savedParams);
+                                new UploadActivityTask(token, title, description, totalElapsed, isPrivate).execute();
                             }
                         })
                         .setNegativeButton(R.string.btn_cancel, null)
