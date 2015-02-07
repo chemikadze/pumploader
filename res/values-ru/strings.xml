@@ -14,10 +14,10 @@
     <string name="tab_exersises">Упражнения</string>
     <string name="add_exercise">Новое упражнение</string>
     <string name="add_exercise_type">Новое упражнение</string>
-    <string name="add_set">Новый подход</string>
+    <string name="add_reps">Новый подход</string>
     <string name="remove">Удалить</string>
     <string name="btn_add">Добавить</string>
-    <string name="btn_add_set">Подход</string>
+    <string name="btn_add_reps">Подход</string>
     <string name="btn_cancel">Отмена</string>
     <string name="btn_set">Изменить</string>
     <string name="btn_save">Сохранить</string>
@@ -27,7 +27,6 @@
         <item>Отжимания</item>
     </string-array>
     <string name="add_dialog_duration">Длительность</string>
-    <string name="add_dialog_count">Количество</string>
     <string name="enter_duration">Ввод длительности</string>
     <string name="upload_dialog_title">Загрузка тренировки</string>
     <string name="upload_failed_title">Загрузка не удалась</string>
@@ -54,10 +53,16 @@
     <string name="export_signature">Загружено при помощи PumpLoader для Android</string>
     <string name="unnamed_athlete">Безымянный спортсмен №</string>
     <string name="exercise_count_fmt">%s раз</string>
+    <plurals name="weight_picker_format">
+        <item quantity="one">%s кг</item>
+        <item quantity="few">%s кг</item>
+        <item quantity="many">%s кг</item>
+        <item quantity="other">%s кг</item>
+    </plurals>
     <plurals name="exercise_count_fmt">
         <item quantity="one">%s раз</item>
         <item quantity="few">%s раза</item>
-        <item quantity="many">%s раза</item>
+        <item quantity="many">%s раз</item>
         <item quantity="other">%s раза</item>
     </plurals>
 </resources>

@@ -1,42 +1,25 @@
 package com.github.chemikadze.pumploader.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public final class ExerciseSet implements Serializable {
 
-    private int count;
-    private int duration;
+    private String name;
+    private ArrayList<ExerciseReps> reps;
 
-    public ExerciseSet(int count, int duration) {
-        this.count = count;
-        this.duration = duration;
+    public ExerciseSet(String name, ArrayList<ExerciseReps> reps) {
+        this.name = name;
+        this.reps = reps;
     }
 
-    public int getCount() {
-        return count;
+    public String getName() {
+        return name;
     }
 
-    public int getDuration() {
-        return duration;
+    public ArrayList<ExerciseReps> getReps() {
+        return reps;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
 
-        ExerciseSet that = (ExerciseSet) o;
-
-        if (count != that.count) return false;
-        if (duration != that.duration) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = count;
-        result = 31 * result + duration;
-        return result;
-    }
 }

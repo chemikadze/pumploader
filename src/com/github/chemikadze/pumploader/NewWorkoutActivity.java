@@ -16,8 +16,8 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.*;
 import android.widget.*;
-import com.github.chemikadze.pumploader.model.Exercise;
 import com.github.chemikadze.pumploader.model.ExerciseSet;
+import com.github.chemikadze.pumploader.model.ExerciseReps;
 import org.jstrava.connector.JStrava;
 import org.jstrava.connector.JStravaV3;
 
@@ -43,7 +43,6 @@ public class NewWorkoutActivity extends Activity {
     private static final String TAB_TAG_EXERCISES = "exercises";
 
     private static final String STATE_EXERCISE_DATA = "exercises";
-    private static final String STATE_SETS_DATA = "sets";
     private static final String STATE_TAB = "tab";
 
     private static final String PREFERENCE_EXERCISE_TYPES = "exercises";
@@ -89,21 +88,21 @@ public class NewWorkoutActivity extends Activity {
         });
         exerciseListView.addFooterView(footer, null, false);
 
-        ArrayList<Exercise> exercises;
-        Object savedExercises = null;
+        ArrayList<ExerciseSet> sets;
+        Object savedSets = null;
         if (savedInstanceState != null) {
-            savedExercises = savedInstanceState.getSerializable(STATE_EXERCISE_DATA);
+            savedSets = savedInstanceState.getSerializable(STATE_EXERCISE_DATA);
         }
-        if (savedExercises == null) {
-            exercises = new ArrayList<Exercise>();
+        if (savedSets == null) {
+            sets = new ArrayList<ExerciseSet>();
         } else {
-            exercises = (ArrayList<Exercise>)savedExercises;
+            sets = (ArrayList<ExerciseSet>)savedSets;
         }
 
         exerciseAdapter = new ExercisesAdapter(
                 getApplicationContext(),
-                exercises, R.layout.exercise_item,
-                R.layout.set_item);
+                sets, R.layout.exercise_item,
+                R.layout.reps_item);
         exerciseAdapter.setOnAddClickListenerFactory(new Utils.Function1<Integer, View.OnClickListener>() {
             @Override
             View.OnClickListener apply(Integer argument) {
@@ -168,7 +167,7 @@ public class NewWorkoutActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(STATE_EXERCISE_DATA, exerciseAdapter.getExercises());
+        outState.putSerializable(STATE_EXERCISE_DATA, exerciseAdapter.getExerciseSets());
 
         TabHost tabHost = (TabHost)findViewById(R.id.tab_host_input_type);
         outState.putString(STATE_TAB, tabHost.getCurrentTabTag());
@@ -318,16 +317,16 @@ public class NewWorkoutActivity extends Activity {
     private String getDescriptionFromConstructor() {
         String elapsedFmt = getString(R.string.exercise_elapsed_fmt);
         StringBuilder text = new StringBuilder();
-        for (int i = 0; i < exerciseAdapter.getExercises().size(); ++i) {
-            Exercise exercise = exerciseAdapter.getExercises().get(i);
+        for (int i = 0; i < exerciseAdapter.getExerciseSets().size(); ++i) {
+            ExerciseSet exerciseSet = exerciseAdapter.getExerciseSets().get(i);
 
             text.append(i + 1);
             text.append(". ");
-            text.append(exercise.getName());
+            text.append(exerciseSet.getName());
 
-            if (exercise.getSets().size() > 0) {
-                int totalCount = Utils.totalCount(exercise.getSets());
-                int totalElapsed = Utils.totalElapsed(exercise.getSets());
+            if (exerciseSet.getReps().size() > 0) {
+                int totalCount = Utils.totalCount(exerciseSet.getReps());
+                int totalElapsed = Utils.totalElapsed(exerciseSet.getReps());
                 String totalElapsedStr = Utils.formatElapsed(totalElapsed);
 
                 text.append(". ");
@@ -338,15 +337,20 @@ public class NewWorkoutActivity extends Activity {
             }
             text.append("\n");
 
-            ArrayList<ExerciseSet> currentSets = exercise.getSets();
+            ArrayList<ExerciseReps> currentSets = exerciseSet.getReps();
 
             for (int j = 0; j < currentSets.size(); ++j) {
                 int count = currentSets.get(j).getCount();
                 int elapsed = currentSets.get(j).getDuration();
+                int weight = currentSets.get(j).getWeight();
 
                 text.append(j + 1);
                 text.append(") ");
                 text.append(getResources().getQuantityString(R.plurals.exercise_count_fmt, count, count));
+                if (weight > 0) {
+                    text.append(" × ");
+                    text.append(getResources().getQuantityString(R.plurals.weight_picker_format, weight, weight));
+                }
                 if (elapsed > 0) {
                     text.append(String.format(elapsedFmt, formatElapsed(currentSets.get(j).getDuration())));
                 }
@@ -375,8 +379,8 @@ public class NewWorkoutActivity extends Activity {
         description.append(getString(R.string.export_signature));
 
         int totalElapsed = 0;
-        for (int i = 0; i < exerciseAdapter.getExercises().size(); i++) {
-            totalElapsed += Utils.totalElapsed(exerciseAdapter.getExercises().get(i).getSets());
+        for (int i = 0; i < exerciseAdapter.getExerciseSets().size(); i++) {
+            totalElapsed += Utils.totalElapsed(exerciseAdapter.getExerciseSets().get(i).getReps());
         }
 
         uploadWorkout(account, title, description.toString(), totalElapsed, isPrivate);
@@ -488,11 +492,27 @@ public class NewWorkoutActivity extends Activity {
 
         @Override
         public void onClick(View v) {
-            View view = NewWorkoutActivity.this.getLayoutInflater().inflate(R.layout.add_set_dialog, null);
-            final NumberPicker numberPicker = (NumberPicker)view.findViewById(R.id.set_count_picker);
-            numberPicker.setMinValue(0);
-            numberPicker.setMaxValue(Integer.MAX_VALUE);
-            numberPicker.setWrapSelectorWheel(false);
+            View view = NewWorkoutActivity.this.getLayoutInflater().inflate(R.layout.add_reps_dialog, null);
+            final NumberPicker countPicker = (NumberPicker)view.findViewById(R.id.reps_count_picker);
+            countPicker.setMinValue(0);
+            countPicker.setMaxValue(Integer.MAX_VALUE);
+            countPicker.setWrapSelectorWheel(false);
+            countPicker.setFormatter(new NumberPicker.Formatter() {
+                @Override
+                public String format(int value) {
+                    return getResources().getQuantityString(R.plurals.exercise_count_fmt, value, value);
+                }
+            });
+            final NumberPicker weightPicker = (NumberPicker)view.findViewById(R.id.reps_weight_picker);
+            weightPicker.setMinValue(0);
+            weightPicker.setMaxValue(Integer.MAX_VALUE);
+            weightPicker.setWrapSelectorWheel(false);
+            weightPicker.setFormatter(new NumberPicker.Formatter() {
+                @Override
+                public String format(int value) {
+                    return getResources().getQuantityString(R.plurals.weight_picker_format, value, value);
+                }
+            });
 
             final Chronometer chrono = (Chronometer)view.findViewById(R.id.set_chrono);
             final AtomicLong elapsed = new AtomicLong(0);
@@ -567,21 +587,24 @@ public class NewWorkoutActivity extends Activity {
                 }
             });
 
-            ArrayList<ExerciseSet> currentSets = exercisesAdapter.getExercises().get(groupPosition).getSets();
-            if (!currentSets.isEmpty()) {
-                int lastSetCount = currentSets.get(currentSets.size() - 1).getCount();
-                numberPicker.setValue(lastSetCount);
+            ArrayList<ExerciseReps> currentReps = exercisesAdapter.getExerciseSets().get(groupPosition).getReps();
+            if (!currentReps.isEmpty()) {
+                int lastSetCount = currentReps.get(currentReps.size() - 1).getCount();
+                int lastWeight = currentReps.get(currentReps.size() - 1).getWeight();
+                countPicker.setValue(lastSetCount);
+                weightPicker.setValue(lastWeight);
             }
 
             new AlertDialog.Builder(NewWorkoutActivity.this)
-                    .setTitle(getString(R.string.add_set))
+                    .setTitle(getString(R.string.add_reps))
                     .setView(view)
                     .setPositiveButton(getString(R.string.btn_add), new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            numberPicker.clearFocus();
-                            Integer count = numberPicker.getValue();
+                            countPicker.clearFocus();
+                            Integer count = countPicker.getValue();
+                            Integer weight = weightPicker.getValue();
                             exerciseListView.expandGroup(groupPosition);
-                            exercisesAdapter.addSet(groupPosition, count, (int) elapsed.get());
+                            exercisesAdapter.addSet(groupPosition, count, (int) elapsed.get(), weight);
                         }
                     })
                     .setNegativeButton(getString(R.string.btn_cancel), null)

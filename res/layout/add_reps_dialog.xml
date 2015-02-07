@@ -6,26 +6,40 @@
         android:orientation="vertical"
         android:padding="5dp">
 
-    <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/add_dialog_count"
-            android:layout_marginLeft="15dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"/>
+    <LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content">
 
-    <NumberPicker
-            android:id="@+id/set_count_picker"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-    </NumberPicker>
+            <NumberPicker
+                    android:id="@+id/reps_count_picker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+            </NumberPicker>
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="×"
+                    android:textSize="40sp"
+                    android:layout_gravity="center"/>
+
+            <NumberPicker
+                    android:id="@+id/reps_weight_picker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+            </NumberPicker>
+
+    </LinearLayout>
 
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/add_dialog_duration"
             android:layout_marginLeft="15dp"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:layout_marginBottom="10dp"/>
 
     <LinearLayout
             android:layout_width="match_parent"

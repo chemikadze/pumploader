@@ -4,7 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.widget.NumberPicker;
 import android.widget.Toast;
-import com.github.chemikadze.pumploader.model.ExerciseSet;
+import com.github.chemikadze.pumploader.model.ExerciseReps;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +50,7 @@ public class Utils {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 
-    static int totalElapsed(List<ExerciseSet> set) {
+    static int totalElapsed(List<ExerciseReps> set) {
         int acc = 0;
         for (int i = 0; i < set.size(); i++) {
             acc += set.get(i).getDuration();
@@ -58,7 +58,7 @@ public class Utils {
         return acc;
     }
 
-    static int totalCount(List<ExerciseSet> set) {
+    static int totalCount(List<ExerciseReps> set) {
         int acc = 0;
         for (int i = 0; i < set.size(); i++) {
             acc += set.get(i).getCount();

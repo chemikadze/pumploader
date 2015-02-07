@@ -12,12 +12,12 @@
     <string name="new_workout_prefix">Workout</string>
     <string name="tab_description">Description</string>
     <string name="tab_exersises">Exercises</string>
-    <string name="add_exercise">Add exercise</string>
+    <string name="add_exercise">Add set</string>
     <string name="add_exercise_type">Add exercise</string>
-    <string name="add_set">Add set</string>
+    <string name="add_reps">Add reps</string>
     <string name="remove">Remove</string>
     <string name="btn_add">Add</string>
-    <string name="btn_add_set">Add set</string>
+    <string name="btn_add_reps">Add reps</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_set">Set</string>
     <string name="btn_save">Save</string>
@@ -27,7 +27,6 @@
         <item>Pull Ups</item>
     </string-array>
     <string name="add_dialog_duration">Duration</string>
-    <string name="add_dialog_count">Count</string>
     <string name="enter_duration">Enter duration</string>
     <string name="upload_dialog_title">Uploading activity</string>
     <string name="upload_failed_title">Upload failed</string>
@@ -51,6 +50,10 @@
     <string name="export_signature">Uploaded with PumpLoader for android</string>
     <string name="unnamed_athlete">Unnamed athlete #</string>
     <string name="exercise_count_fmt">%s times</string>
+    <plurals name="weight_picker_format">
+        <item quantity="one">%s kg</item>
+        <item quantity="other">%s kgs</item>
+    </plurals>
     <plurals name="exercise_count_fmt">
         <item quantity="one">%s time</item>
         <item quantity="other">%s times</item>

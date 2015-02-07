@@ -44,7 +44,7 @@
                 android:id="@+id/add_set"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/btn_add_set"
+                android:text="@string/btn_add_reps"
                 android:layout_weight="0"
                 android:layout_marginRight="20dp"
                 android:focusable="false"
