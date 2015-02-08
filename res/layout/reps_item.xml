@@ -13,7 +13,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="example text"
+                android:text="45 x 10 kgs"
                 android:gravity="center_vertical"
                 android:paddingLeft="?android:attr/expandableListPreferredItemPaddingLeft"
                 android:textColor="@android:color/primary_text_light"
@@ -23,8 +23,7 @@
         <TextView
                 xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/exercise_duration"
-                android:layout_width="wrap_content"
-                android:layout_weight="1"
+                android:layout_width="150dp"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="00:00:00"
